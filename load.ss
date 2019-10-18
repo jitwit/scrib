@@ -4,6 +4,7 @@
   '("term.ss"
     "playing-cards.ss"
     "cribbage.ss"
+    "tables.ss"
     "strategy.ss"))
 
 (for-each load source-files)
