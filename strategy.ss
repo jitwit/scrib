@@ -4,16 +4,18 @@
 ;;; Heuristics
 (define (deal-maximize-points-heuristic deck hand)
   (lambda (h)
-    (+ (v:fxsum (vector-map (lambda (c)
-                              (score-deal (cons c h)))
-                            deck))
+    (+ (/ (v:fxsum (vector-map (lambda (c)
+                                 (score-deal (cons c h)))
+                               deck))
+          (vector-length deck))
        (deal-discard (discard h hand)))))
 
 (define (pone-maximize-points-heuristic deck hand)
   (lambda (h)
-    (- (v:fxsum (vector-map (lambda (c)
-                              (score-pone (cons c h)))
-                            deck))
+    (- (/ (v:fxsum (vector-map (lambda (c)
+                                 (score-pone (cons c h)))
+                               deck))
+          (vector-length deck))
        (pone-discard (discard h hand)))))
 
 (define (deal-maximize-crib-heuristic deck hand)
@@ -51,13 +53,14 @@
     (list-ref discards (random (length discards)))))
 
 (define (display-discard-strategy heuristic hand)
-  (let ((results (reverse (rank-on (combinations hand 4) heuristic))))
-    (for-each (lambda (result)
-                (pretty-print-hand (cdr result))
-                (pretty-print-hand (discard (cdr result) hand))
-                (format #t "H: ~,2f~%~%" (car result)))
-              (list-head results 5))
-    (map cdr results)))
+  (let ((deck (list->vector (deck-without hand))))
+    (let ((results (reverse (rank-on (combinations hand 4) (heuristic deck hand)))))
+      (for-each (lambda (result)
+                  (pretty-print-hand (cdr result))
+                  (pretty-print-hand (discard (cdr result) hand))
+                  (format #t "H: ~,2f~%~%" (car result)))
+                (list-head results 5))
+      (map cdr results))))
 
 ;;; Agents
 
@@ -75,6 +78,12 @@
 
 (define simple-agent-random
   (simple-agent random-discard random-discard))
+
+(define simple-agent-defensive
+  (simple-agent deal-maximize-points pone-minimize-discard))
+
+(define simple-agent-crib-minded
+  (simple-agent deal-maximize-discard pone-minimize-discard))
 
 ;;; Simulations
 
