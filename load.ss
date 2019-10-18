@@ -9,6 +9,11 @@
 
 (for-each load source-files)
 
+(define (v:fxsum V)
+  (do ((i (fx1- (vector-length V)) (fx1- i))
+       (sum 0 (fx+ sum (vector-ref V i))))
+      ((fx< i 0) sum)))
+
 (define handA)
 
 (define handB)
