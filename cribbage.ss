@@ -13,10 +13,17 @@
   (fxsll (count crib:pair? (combinations hand 2)) 1))
 
 (define (score-fifteens hand)
-  (fxsll (count (lambda (subset)
-                  (fx= 15 (fold-left fx+ 0 subset)))
-                (subsets (map crib:rank hand)))
-         1))
+  (let ((V (make-fxvector 16)))
+    (fxvector-set! V 0 1)
+    (for-each (lambda (r)
+                (do ((i 15 (fx1- i)))
+                    ((fx< i r))
+                  (fxvector-set! V
+                                 i
+                                 (fx+ (fxvector-ref V i)
+                                      (fxvector-ref V (fx- i r))))))
+              (map crib:rank hand))
+    (fxsll (fxvector-ref V 15) 1)))
 
 (define (score-flush hand)
   (let ((cut (car hand))
@@ -65,26 +72,26 @@
         0)))
 
 (define (score-pone hand)
-  (+ (score-runs hand)
-     (score-fifteens hand)
-     (score-pairs hand)
-     (score-flush hand)
-     (score-nobs hand)))
+  (fx+ (score-runs hand)
+       (score-fifteens hand)
+       (score-pairs hand)
+       (score-flush hand)
+       (score-nobs hand)))
 
 (define (score-deal hand)
-  (+ (score-runs hand)
-     (score-fifteens hand)
-     (score-pairs hand)
-     (score-flush hand)
-     (score-nobs hand)
-     (score-heels hand)))
+  (fx+ (score-runs hand)
+       (score-fifteens hand)
+       (score-pairs hand)
+       (score-flush hand)
+       (score-nobs hand)
+       (score-heels hand)))
 
 (define (score-crib hand)
-  (+ (score-runs hand)
-     (score-fifteens hand)
-     (score-pairs hand)
-     (score-crib-flush hand)
-     (score-nobs hand)))
+  (fx+ (score-runs hand)
+       (score-fifteens hand)
+       (score-pairs hand)
+       (score-crib-flush hand)
+       (score-nobs hand)))
 
 ;;; Peg Scores
 ;; Assumes the board is lifo stack
@@ -127,7 +134,7 @@
               (loop (cdr prefixes) (fx1- n)))))))
 
 (define (score-peg board)
-  (+ (score-peg-count board) ;; fifteens scored by count
-     (score-peg-pairs board)
-     (score-peg-runs board)))
+  (fx+ (score-peg-count board) ;; fifteens scored by count
+       (score-peg-pairs board)
+       (score-peg-runs board)))
 
