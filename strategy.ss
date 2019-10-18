@@ -10,24 +10,25 @@
               (list-head results 5))
     (map cdr results)))
 
-(define (deal-discard-maximize-hand hand)
+(define (deal-maximize-points hand)
   (let ((deck (list->vector (deck-without hand))))
-    (discard-analyze-hand-strategy (lambda (hand)
-                                     (car (mean.stdev
-                                           (vector-map (lambda (c)
-                                                         (score-deal (cons c hand)))
-                                                       deck))))
+    (discard-analyze-hand-strategy (lambda (h)
+                                     ;; sum of expected value of cut + crib discard
+                                     (+ (car (mean.stdev
+                                              (vector-map (lambda (c)
+                                                            (score-deal (cons c h)))
+                                                          deck)))
+                                        (deal-discard (discard h hand))))
                                    hand)))
 
-(define (pone-discard-maximize-hand hand)
+(define (pone-maximize-points hand)
   (let ((deck (list->vector (deck-without hand))))
-    (discard-analyze-hand-strategy (lambda (hand)
-                                     (car (mean.stdev
-                                           (vector-map (lambda (c)
-                                                         (score-pone (cons c hand)))
-                                                       deck))))
+    (discard-analyze-hand-strategy (lambda (h)
+                                     ;; sum of expected value of cut - crib discard
+                                     (- (car (mean.stdev
+                                              (vector-map (lambda (c)
+                                                            (score-deal (cons c h)))
+                                                          deck)))
+                                        (pone-discard (discard h hand))))
                                    hand)))
-
-(define (analyze-crib-discard hand crib deck)
-  'todo)
 
