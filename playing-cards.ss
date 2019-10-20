@@ -95,6 +95,16 @@
                (cdr hand))))
   (newline))
 
+;; unsorted version
+(define (display-hand* hand)
+  (unless (null? hand)
+    (display-card (car hand))
+    (for-all (lambda (card)
+               (display #\-)
+               (display-card card))
+             (cdr hand)))
+  (newline))
+
 (define (deck)
   (shuffle (iota 52)))
 

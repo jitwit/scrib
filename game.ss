@@ -22,17 +22,17 @@
     (const #f))
    (const (opposite-player (crib-last-peg crib)))))
 
-;; todo: settle game winner by raising error if passes 121. could use
-;; with-exception-handler in make-cribbage or something
 (define (update-score crib who dx)
   (case who
     ((A) (let ((score (+ dx (crib-scoreA crib))))
            (when (<= 121 score)
-             (raise 'A))
+             (raise-continuable
+              (crib-update-scoreA crib (const 121))))
            (crib-update-scoreA crib (const score))))
     ((B) (let ((score (+ dx (crib-scoreB crib))))
            (when (<= 121 score)
-             (raise 'B))
+             (raise-continuable
+              (crib-update-scoreB crib (const 121))))
            (crib-update-scoreB crib (const score))))))
 
 (define (execute-discard crib card+)
@@ -175,21 +175,36 @@
                      (set! state (execute-count state handA handB))
                      'done)
                     (else (error 'cribbage "bad phase" state))))))
+
     (lambda (M)
       (case M
+        ((run)
+         (call/cc
+          (lambda (k)
+            (with-exception-handler
+                (lambda (e)
+                  (k e))
+              run))))
         ((god-mode) state)
-        ((run) (run))
         (else (error 'cribbage "dunno, man" M))))))
 
 (define (run-cribbage-game agentA agentB)
-  (let ((game (make-cribbage agentA agentB)))
-    (let loop ()
-      (game 'run)
-      ;;      (display-cribbage (game 'god-mode))
-      ;;      (sleep (make-time 'time-duration 0 1))
-      (loop))))
+  (parameterize ((verbose-cribbage #f))
+    (let ((game (make-cribbage agentA agentB)))
+      (let loop ((result (game 'run)))
+        (case result
+          ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
+          (else result))))))
 
-;;; Validate ?
+(define (compare-agents agentA agentB trials)
+  (let ((wins-a 0)
+        (wins-b 0))
+    (do ((trials trials (1- trials)))
+        ((zero? trials) (cons wins-a wins-b))
+      (let ((result (run-cribbage-game agentA agentB)))
+        (if (eq? (crib-scoreA result) 121)
+            (inc! wins-a)
+            (inc! wins-b))))))
 
 ;;; Mechanics
 (define (deal-crib scoreA scoreB dealer)
@@ -207,6 +222,8 @@
                '())))
 
 (define (redeal-crib crib)
+  (when (verbose-cribbage)
+    (display-verbose-scores crib))
   (let ((cards (list-head (deck) 13)))
     (deal-crib (crib-scoreA crib)
                (crib-scoreB crib)

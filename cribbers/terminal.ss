@@ -14,6 +14,9 @@
                   cards)))
 
 (define (prompt-discard state)
+  (for-all (lambda (n)
+             (newline))
+           (iota 30))
   (display-discard state)
   (format #t "select two cards (1-indexed)~%")
   (let loop ((choices '()))
@@ -32,6 +35,9 @@
            (list-ref cards (1- card)))))
 
 (define (prompt-peg state)
+  (for-all (lambda (n)
+             (newline))
+           (iota 30))
   (display-peg state)
   (format #t "select a card (1-indexed)~%")
   (let ((cards (valid-pegs (state-peg-board state) (state-peg-hand state))))

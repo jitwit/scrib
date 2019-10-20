@@ -4,6 +4,8 @@
 
 (define agents
   '(rando
+    maximus
+    minimus
     terminal))
 
 (define source-files
@@ -14,6 +16,9 @@
     "cribbage.ss"
     "tables.ss"
     "strategy.ss"))
+
+(define verbose-cribbage
+  (make-parameter #f))
 
 (for-each load source-files)
 (for-each (lambda (agent)
@@ -54,27 +59,24 @@
   (display "hand:  ")
   (display-hand (state-peg-hand state))
   (display "board: ")
-  (display-hand (state-peg-board state))
+  (display-hand* (state-peg-board state))
   (display "valid-pegs: ")
-  (display-hand (valid-pegs (state-peg-board state) (state-peg-hand state))))
+  (display-hand* (valid-pegs (state-peg-board state) (state-peg-hand state))))
 
-(define (display-cribbage state)
-  (format #t
-          "phase: ~a~%dealer: ~a~%turn:   ~a~%scores: ~a ~a~%"
-          (game-phase state)
-          (crib-dealer state)
-          (crib-turn state)
-          (crib-scoreA state)
-          (crib-scoreB state))
-  (display-ln "Hand A")
-  (display-hand (crib-handA state))
-  (display-ln "Hand B")
-  (display-hand (crib-handB state))
-  (display-ln "Crib")
-  (display-hand (crib-crib state))
-  (display-ln "Board")
-  (display-hand (crib-board state))
-  (newline))
+(define (display-verbose-scores crib)
+  (let ((cut (crib-cut crib)))
+    (display-ln "Cut")
+    (display-card cut) (newline)
+    (display-ln "Hand A")
+    (display-ln (score-hand (cons cut (crib-handA crib))))
+    (display-hand (crib-handA crib))
+    (display-ln "Hand B")
+    (display-ln (score-hand (cons cut (crib-handB crib))))
+    (display-hand (crib-handB crib))
+    (display-ln "Crib")
+    (display-ln (score-crib (cons cut (crib-crib crib))))
+    (display-hand (crib-crib crib))
+    (newline)))
 
 (define C0
   (deal-crib 0 0 'A))
