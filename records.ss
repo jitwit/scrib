@@ -8,8 +8,55 @@
           handB
           crib
           cut
+          go?
           board
           board*))
+
+(define-record-type state-discard
+  (fields dealer?
+          scoreA
+          scoreB
+          hand))
+
+(define-record-type state-peg
+  (fields dealer?
+          scoreA
+          scoreB
+          cut
+          hand
+          go?
+          board
+          board*))
+
+(define (crib->discard crib)
+  (case (crib-turn crib)
+    ((A) (make-state-discard (eq? 'A (crib-dealer crib))
+                             (crib-scoreA crib)
+                             (crib-scoreB crib)
+                             (crib-handA crib)))
+    ((B) (make-state-discard (eq? 'B (crib-dealer crib))
+                             (crib-scoreB crib)
+                             (crib-scoreA crib)
+                             (crib-handB crib)))))
+
+(define (crib->peg crib)
+  (case (crib-turn crib)
+    ((A) (make-state-peg (eq? 'A (crib-dealer crib))
+                         (crib-scoreA crib)
+                         (crib-scoreB crib)
+                         (crib-cut crib)
+                         (crib-handA crib)
+                         (crib-go? crib)
+                         (crib-board crib)
+                         (crib-board* crib)))
+    ((B) (make-state-peg (eq? 'B (crib-dealer crib))
+                         (crib-scoreB crib)
+                         (crib-scoreA crib)
+                         (crib-cut crib)
+                         (crib-handB crib)
+                         (crib-go? crib)
+                         (crib-board crib)
+                         (crib-board* crib)))))
 
 (define (crib-update-dealer crib f)
   (make-crib (f (crib-dealer crib))
@@ -20,6 +67,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -32,6 +80,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -44,6 +93,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -56,6 +106,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -68,6 +119,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -80,6 +132,7 @@
              (f (crib-handB crib))
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -92,6 +145,7 @@
              (crib-handB crib)
              (f (crib-crib crib))
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -104,6 +158,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (f (crib-cut crib))
+             (crib-go? crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -116,7 +171,21 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (f (crib-board crib))
+             (crib-board* crib)))
+
+(define (crib-update-go? crib f)
+  (make-crib (crib-dealer crib)
+             (crib-turn crib)
+             (crib-scoreA crib)
+             (crib-scoreB crib)
+             (crib-handA crib)
+             (crib-handB crib)
+             (crib-crib crib)
+             (crib-cut crib)
+             (f (crib-go? crib))
+             (crib-board crib)
              (crib-board* crib)))
 
 (define (crib-update-board* crib f)
@@ -128,6 +197,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
+             (crib-go? crib)
              (crib-board crib)
              (f (crib-board* crib))))
 

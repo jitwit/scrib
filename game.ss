@@ -1,4 +1,5 @@
 
+;;; Execute updates
 (define (crib-change-turn crib)
   (crib-update-turn crib opposite-player))
 
@@ -13,16 +14,27 @@
     ((B) (crib-update-handB crib (curry discard card+)))))
 
 (define (execute-discard-to-crib crib cards)
-  (crib-update-crib (execute-discard crib cards) (curry append cards)))
+  (crib-change-turn
+   (crib-update-crib (execute-discard crib cards) (curry append cards))))
 
 (define (execute-discard-peg crib card)
-  (crib-update-board (execute-discard crib (list card)) (curry cons* card)))
+  (crib-change-turn
+   (crib-update-board (execute-discard crib (list card)) (curry cons* card))))
+
+(define (execute-increment-go crib)
+  (if (crib-go? crib)
+      (crib-change-turn
+       (update-score (crib-update-go? crib not)
+                     (crib-turn crib)
+                     1))
+      (crib-change-turn
+       (crib-update-go? crib not))))
 
 (define (execute-peg crib card)
   (let ((new-crib (execute-discard crib (list card))))
     (crib-change-turn
      (update-score new-crib
-                   who
+                   (crib-turn new-crib)
                    (curry + (score-peg (crib-board new-crib)))))))
 
 (define (score-cut crib)
@@ -30,46 +42,7 @@
       (update-score crib (crib-dealer crib) 2)
       crib))
 
-(define (score-go crib who)
-  (update-score crib who 1))
-
-(define (make-peg crib who card)
-  (let ((board (cons card (crib-board crib)))
-        (hand (crib-cards crib who)))
-    (case who
-      ((A) (update-score crib )
-       (make-crib (crib-dealer crib)
-                  (+ (score-peg board)
-                     (crib-scoreA crib))
-                  (crib-scoreB crib)
-                  (remv card hand)
-                  (crib-handB crib)
-                  (crib-crib crib)
-                  (crib-cut crib)
-                  board
-                  (crib-board* crib)))
-      ((B) (make-crib (crib-dealer crib)
-                      (crib-scoreA crib)
-                      (+ (score-peg board)
-                         (crib-scoreB crib))
-                      (crib-handA crib)
-                      (remv card hand)
-                      (crib-crib crib)
-                      (crib-cut crib)
-                      board
-                      (crib-board* crib))))))
-
-(define (make-go crib)
-  (make-crib (crib-dealer crib)
-             (crib-scoreA crib)
-             (crib-scoreB crib)
-             (crib-handA crib)
-             (crib-handB crib)
-             (crib-crib crib)
-             (crib-cut crib)
-             '()
-             (cons (crib-board crib)
-                   (crib-board* crib))))
+;;; Validate ?
 
 ;;; Mechanics
 (define (discarded? crib)
@@ -99,6 +72,7 @@
                (sort-on (list-tail (cdr cards) 6) rank)
                '()
                (car cards)
+               #f
                '()
                '())))
 

@@ -83,8 +83,7 @@
        (score-fifteens hand)
        (score-pairs hand)
        (score-flush hand)
-       (score-nobs hand)
-       (score-heels hand)))
+       (score-nobs hand)))
 
 (define (score-crib hand)
   (fx+ (score-runs hand)
@@ -138,6 +137,8 @@
        (score-peg-pairs board)
        (score-peg-runs board)))
 
-;;;; Game play
-
-;;; Scores
+(define (valid-pegs state)
+  (let ((total (crib-board-total (state-peg-board state))))
+    (filter (lambda (card)
+              (fx<= (fx+ total (crib:rank card)) 31))
+            (state-peg-hand state))))
