@@ -88,7 +88,7 @@
 (define (display-hand hand)
   (unless (null? hand)
     (let ((hand (sort-on hand rank)))
-      (pretty-print-card (car hand))
+      (display-card (car hand))
       (for-all (lambda (card)
                  (display #\-)
                  (display-card card))

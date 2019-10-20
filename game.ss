@@ -181,6 +181,14 @@
         ((run) (run))
         (else (error 'cribbage "dunno, man" M))))))
 
+(define (run-cribbage-game agentA agentB)
+  (let ((game (make-cribbage agentA agentB)))
+    (let loop ()
+      (game 'run)
+      ;;      (display-cribbage (game 'god-mode))
+      ;;      (sleep (make-time 'time-duration 0 1))
+      (loop))))
+
 ;;; Validate ?
 
 ;;; Mechanics
