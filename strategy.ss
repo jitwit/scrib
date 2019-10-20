@@ -56,11 +56,13 @@
   (let ((deck (list->vector (deck-without hand))))
     (let ((results (reverse (rank-on (combinations hand 4) (heuristic deck hand)))))
       (for-each (lambda (result)
-                  (pretty-print-hand (cdr result))
-                  (pretty-print-hand (discard (cdr result) hand))
-                  (format #t "H: ~,2f~%~%" (car result)))
-                (list-head results 5))
-      (map cdr results))))
+                  (let ((keeps (cdr result))
+                        (cribs (discard (cdr result) hand)))
+                    (pretty-print-hand keeps)
+                    (pretty-print-hand cribs)
+                    (format #t "H: ~,2f~%~%"
+                            (car result))))
+                (list-head results 10)))))
 
 ;;; Agents
 
@@ -96,10 +98,9 @@
             (hand-b ((simple-agent-pone player-b) deal-b)))
         (let ((crib (append (discard hand-a deal-a)
                             (discard hand-b deal-b))))
-          (cons
-           (+ (score-deal (cons cut hand-a))
-              (score-crib (cons cut crib)))
-           (score-pone (cons cut hand-b))))))))
+          (cons (+ (score-deal (cons cut hand-a))
+                   (score-crib (cons cut crib)))
+                (score-pone (cons cut hand-b))))))))
 
 (define (simulate-agent-matchup player-a player-b trials)
   (let ((deals-a (make-vector trials))
@@ -130,7 +131,7 @@
             (car stats-deal-b)
             (cdr stats-pone-b))))
 
-(define (simulate-average-scores-for-strategies deal-strategy pone-strategy trials)
+(define (simulate-scores-for-strategies deal-strategy pone-strategy trials)
   (let ((dealer-results (make-vector trials))
         (crib-results (make-vector trials))
         (pone-results (make-vector trials)))

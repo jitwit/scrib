@@ -1,8 +1,12 @@
 (import (euler))
 
+(print-gensym #f)
+
 (define source-files
   '("term.ss"
     "playing-cards.ss"
+    "records.ss"
+    "game.ss"
     "cribbage.ss"
     "tables.ss"
     "strategy.ss"))
@@ -27,7 +31,6 @@
     (set! cut (list-ref cards 12))))
 
 (define (display-deal)
-  (deal)
   (pretty-print-card cut) (newline)
   (pretty-print-hand handA)
   (pretty-print-hand handB))
@@ -37,3 +40,10 @@
   (display #\-)
   (pretty-print-hand hand)
   (display-ln (score-deal (cons cut hand))))
+
+(define (save-fasl thing file)
+  (when (file-exists? file)
+    (delete-file file))
+  (let ((port (open-file-output-port file)))
+    (fasl-write thing port)
+    (close-port file)))

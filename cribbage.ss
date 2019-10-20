@@ -138,3 +138,6 @@
        (score-peg-pairs board)
        (score-peg-runs board)))
 
+;;;; Game play
+
+;;; Scores
