@@ -8,7 +8,7 @@
           handB
           crib
           cut
-          go?
+          last-peg
           board
           board*))
 
@@ -24,7 +24,7 @@
           scoreB
           cut
           hand
-          go?
+          last-peg
           board
           board*))
 
@@ -46,7 +46,7 @@
                          (crib-scoreB crib)
                          (crib-cut crib)
                          (crib-handA crib)
-                         (crib-go? crib)
+                         (crib-last-peg crib)
                          (crib-board crib)
                          (crib-board* crib)))
     ((B) (make-state-peg (eq? 'B (crib-dealer crib))
@@ -54,7 +54,7 @@
                          (crib-scoreA crib)
                          (crib-cut crib)
                          (crib-handB crib)
-                         (crib-go? crib)
+                         (crib-last-peg crib)
                          (crib-board crib)
                          (crib-board* crib)))))
 
@@ -67,7 +67,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -80,7 +80,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -93,7 +93,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -106,7 +106,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -119,7 +119,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -132,7 +132,7 @@
              (f (crib-handB crib))
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -145,7 +145,7 @@
              (crib-handB crib)
              (f (crib-crib crib))
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -158,7 +158,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (f (crib-cut crib))
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (crib-board* crib)))
 
@@ -171,11 +171,11 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (f (crib-board crib))
              (crib-board* crib)))
 
-(define (crib-update-go? crib f)
+(define (crib-update-last-peg crib f)
   (make-crib (crib-dealer crib)
              (crib-turn crib)
              (crib-scoreA crib)
@@ -184,7 +184,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (f (crib-go? crib))
+             (f (crib-last-peg crib))
              (crib-board crib)
              (crib-board* crib)))
 
@@ -197,7 +197,7 @@
              (crib-handB crib)
              (crib-crib crib)
              (crib-cut crib)
-             (crib-go? crib)
+             (crib-last-peg crib)
              (crib-board crib)
              (f (crib-board* crib))))
 

@@ -72,7 +72,7 @@
           (state-peg-scoreA state)
           (state-peg-scoreB state))
   (display-hand (state-peg-hand state))
-  (format #t "board: ")
+  (display "board: ")
   (display-hand (state-peg-board state)))
 
 (define C0

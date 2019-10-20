@@ -85,31 +85,14 @@
            ((ten? card) 'T)
            (else (car desc))))))
 
-(define (pretty-print-card card)
-  (let ((desc (card->description card)))
-    (display-with-foreground
-     (cdr (assoc (cadr desc) suit-colors))
-     (cond ((symbol? (car desc))
-            (char-upcase
-             (string-ref (symbol->string (car desc))
-                         0)))
-           ((ten? card) 'T)
-           (else (car desc))))))
-
-
-
-(define (pretty-print-hand hand)
-  (for-each pretty-print-card (sort-on hand rank))
-  (newline))
-
 (define (display-hand hand)
   (unless (null? hand)
     (let ((hand (sort-on hand rank)))
       (pretty-print-card (car hand))
-      (for-each (lambda (card)
-                  (display #\-)
-                  (display-card card))
-                (cdr hand))))
+      (for-all (lambda (card)
+                 (display #\-)
+                 (display-card card))
+               (cdr hand))))
   (newline))
 
 (define (deck)
