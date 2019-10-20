@@ -48,6 +48,41 @@
   (let ((results (reverse (rank-on (combinations hand 4) heuristic))))
     (cdar results)))
 
+
+(define (peg-random state)
+  (let ((hand (state-peg-hand state))
+        (cut (state-peg-cut state))
+        (board (state-peg-board state))
+        (board* (state-peg-board* state)))
+    (let ((moves (valid-pegs board hand)))
+      (if (null? moves)
+          'go
+          (list-ref moves (random (length moves)))))))
+
+(define (peg-best-single state)
+  (let ((hand (state-peg-hand state))
+        (cut (state-peg-cut state))
+        (board (state-peg-board state))
+        (board* (state-peg-board* state)))
+    (let ((choices (sort-on (valid-pegs board hand)
+                            (lambda (peg)
+                              (- (score-peg (cons peg board)))))))
+      (if (null? choices)
+          'go
+          (car choices)))))
+
+(define (peg-worst-single state)
+  (let ((hand (state-peg-hand state))
+        (cut (state-peg-cut state))
+        (board (state-peg-board state))
+        (board* (state-peg-board* state)))
+    (let ((choices (sort-on (valid-pegs board hand)
+                            (lambda (peg)
+                              (score-peg (cons peg board))))))
+      (if (null? choices)
+          'go
+          (car choices)))))
+
 (define (random-discard hand)
   (let ((discards (combinations hand 4)))
     (list-ref discards (random (length discards)))))

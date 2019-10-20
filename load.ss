@@ -59,7 +59,7 @@
   (display "hand:  ")
   (display-hand (state-peg-hand state))
   (display "board: ")
-  (display-hand* (state-peg-board state))
+  (display-hand* (state-peg-board state)) (newline) (newline)
   (display "valid-pegs: ")
   (display-hand* (valid-pegs (state-peg-board state) (state-peg-hand state))))
 
