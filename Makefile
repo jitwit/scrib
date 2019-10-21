@@ -1,6 +1,6 @@
 
 clean :
-	rm -r *~
-	rm -r *html
+	rm -rf *~
+	rm -rf *html
 
 .PHONY : clean

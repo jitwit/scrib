@@ -7,5 +7,5 @@
                  (discard (deal-maximize-points hand) hand)
                  (discard (pone-maximize-points hand) hand))))
           ((state-peg? state)
-           (peg-worst-single state))
+           (peg-best-single state))
           (else (error 'crib-rando "unknown state" state)))))
