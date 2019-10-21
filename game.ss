@@ -21,7 +21,7 @@
    (const (opposite-player (crib-last-peg crib)))))
 
 (define (update-score state who dx)
-  (if (game-over? state)
+  (if (game-won? state)
       state
       (case who
         ((A) (let ((score (+ dx (crib-scoreA state))))
@@ -119,22 +119,19 @@
       (valid-go? state turn)
       (valid-peg-discard? state turn move)))
 
-(define (run-cribbage state agentA agentB)
-  ;; does not validate moves
+(define (run-discard state action)
+  (let ((state* (execute-discard-crib state action)))
+    (if (and (jack? (crib-cut state*))
+             (discard-complete? state*))
+        (update-score state* (crib-dealer state) 2)
+        state*)))
+
+(define (run-cribbage state action)
   (case (game-phase state)
-    ((discard) (let* ((turn (crib-turn state))
-                      (move ((if (eq? turn 'A) agentA agentB)
-                             (crib->discard state)))
-                      (state1 (execute-discard-crib state move)))
-                 (if (and (jack? (crib-cut state))
-                          (discard-complete? state))
-                     (update-score state (crib-dealer state) 2)
-                     state)))
-    ((peg) (let* ((turn (crib-turn state))
-                  (move ((if (eq? turn 'A) agentA agentB)
-                         (crib->peg state))))
-             (execute-peg state move)))
-    ((count) (error 'run-cribbage "incomplete-implementation" state agentA agentB))))
+    ((discard) (run-discard state action))
+    ((peg) (execute-peg state action))
+    ((count) (execute-count state))
+    ((won) state)))
 
 ;;; The core
 (define (make-cribbage agentA agentB)
@@ -142,30 +139,21 @@
            (run (lambda ()
                   (case (game-phase state)
                     ((discard)
-                     (let* ((turn (crib-turn state))
-                            (move ((if (eq? turn 'A) agentA agentB)
-                                   (crib->discard state))))
-                       (unless (valid-discard? state turn move)
+                     (let ((move ((if (eq? (crib-turn state) 'A) agentA agentB)
+                                  (crib->discard state))))
+                       (unless (valid-discard? state (crib-turn state) move)
                          (error 'cribbage "bad discard" state move))
-                       (set! state (execute-discard-crib state move))
-                       (when (discard-complete? state)
-                         ;; remember hands before discarding
-                         (when (jack? (crib-cut state))
-                           ;; his heels!
-                           (set! state (update-score state (crib-dealer state) 2))))
+                       (set! state (run-discard state move))
                        'done))
                     ((peg)
-                     (let* ((turn (crib-turn state))
-                            (move ((if (eq? turn 'A) agentA agentB)
-                                   (crib->peg state))))
-                       (unless (valid-peg? state turn move)
+                     (let ((move ((if (eq? (crib-turn state) 'A) agentA agentB)
+                                  (crib->peg state))))
+                       (unless (valid-peg? state (crib-turn state) move)
                          (error 'cribbage "bad peg" state move))
                        (set! state (execute-peg state move))
                        'done))
-                    ((count)
-                     (set! state (execute-count state))
-                     'done)
-                    ((over) state)
+                    ((count) (set! state (execute-count state)) 'done)
+                    ((won) state)
                     (else (error 'cribbage "bad phase" state))))))
     (lambda (M)
       (case M
@@ -218,7 +206,5 @@
       (crib-handA crib)
       (crib-handB crib)))
 
-(define (game-over? crib)
-  (<= 121 (max (crib-scoreA crib)
-               (crib-scoreB crib))))
+
 

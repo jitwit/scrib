@@ -150,14 +150,14 @@
               (fx<= (fx+ total (crib:rank card)) 31))
             hand)))
 
-;;; Board States := count | peg | discard
+;;; Board States := count | peg | discard | won
 
 (define (game-won? state)
-  (<= 121 (max (crib-scoreA state)
-               (crib-scoreB state))))
+  (fx<= 121 (fxmax (crib-scoreA state)
+                   (crib-scoreB state))))
 
 (define (discard-complete? crib)
-  (= 4 (length (crib-crib crib))))
+  (fx= 4 (length (crib-crib crib))))
 
 (define (peg-complete? crib)
   (and (null? (crib-handA crib))
@@ -169,14 +169,14 @@
          (null? (valid-pegs board (crib-handB crib))))))
 
 (define (game-phase crib)
-  (cond ((game-won? crib) 'over)
+  (cond ((game-won? crib) 'won)
         ((peg-complete? crib) 'count)
         ((discard-complete? crib) 'peg)
         (else 'discard)))
 
 ;;; Move checks
 (define (valid-discard? state turn move)
-  (and (= 2 (length move))
+  (and (fx= 2 (length move))
        (eq? turn (crib-turn state))
        (andmap (lambda (card)
                  (memq card
@@ -192,8 +192,7 @@
 
 (define (actions cribbage)
   (case (game-phase cribbage)
-    ((discard) (combinations (current-players-hand cribbage) 2)))
-  )
+    ((discard) (combinations (current-players-hand cribbage) 2))))
 
 
 

@@ -1,4 +1,3 @@
-
 (define-record-type crib
   (fields dealer
           turn

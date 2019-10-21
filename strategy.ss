@@ -80,17 +80,18 @@
           'go
           (list-ref choices (random (length choices)))))))
 
-(define (display-discard-strategy heuristic hand)
+(define (display-discard-strategy heuristic hand n)
   (let ((deck (list->vector (deck-without hand))))
     (let ((results (reverse (rank-on (combinations hand 4) (heuristic deck hand)))))
+      (display-ln heuristic)
       (for-each (lambda (result)
                   (let ((keeps (cdr result))
                         (cribs (discard (cdr result) hand)))
-                    (pretty-print-hand keeps)
-                    (pretty-print-hand cribs)
+                    (display-hand keeps) (newline)
+                    (display-hand cribs) (newline)
                     (format #t "H: ~,2f~%~%"
                             (car result))))
-                (list-head results 10)))))
+                (list-head results n)))))
 
 ;;; Agents
 
