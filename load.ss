@@ -67,5 +67,13 @@
   (display-hand hand)
   (format #t " got ~a~%" score))
 
+(define (random-element X)
+  (list-ref X (random (length X))))
+
 (define C0
   (deal-crib 0 0 'A))
+
+(define P0
+  (let ((C1 (run-cribbage C0 (random-element (cribbage-actions C0)))))
+    (run-cribbage C1 (random-element (cribbage-actions C1)))))
+

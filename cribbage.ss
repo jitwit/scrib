@@ -150,8 +150,6 @@
               (fx<= (fx+ total (crib:rank card)) 31))
             hand)))
 
-;;; Board States := count | peg | discard | won
-
 (define (game-won? state)
   (fx<= 121 (fxmax (crib-scoreA state)
                    (crib-scoreB state))))
@@ -190,10 +188,19 @@
       (crib-handA cribbage)
       (crib-handB cribbage)))
 
-(define (actions cribbage)
-  (case (game-phase cribbage)
-    ((discard) (combinations (current-players-hand cribbage) 2))))
+;;; Board States := count | peg | discard | won
+(define (cribbage-actions state)
+  (case (game-phase state)
+    ((discard) (combinations (current-players-hand state) 2))
+    ((peg)
+     (let ((discards (valid-pegs (crib-board state) (current-players-hand state))))
+       (if (null? discards)
+           '(go)
+           discards)))))
 
-
-
+(define (valid-pegs board hand)
+  (let ((total (crib-board-total board)))
+    (filter (lambda (card)
+              (fx<= (fx+ total (crib:rank card)) 31))
+            hand)))
 

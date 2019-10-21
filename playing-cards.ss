@@ -114,3 +114,7 @@
 (define (deck-without hand)
   (discard hand (iota 52)))
 
+(define (random-deal known-cards size)
+  (list-head (shuffle (deck-without known-cards))
+             size))
+

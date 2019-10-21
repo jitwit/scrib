@@ -126,10 +126,15 @@
         (update-score state* (crib-dealer state) 2)
         state*)))
 
+(define (run-peg state action)
+  (if (eq? action 'go)
+      (execute-peg-go state)
+      (execute-peg-discard state action)))
+
 (define (run-cribbage state action)
   (case (game-phase state)
     ((discard) (run-discard state action))
-    ((peg) (execute-peg state action))
+    ((peg) (run-peg state action))
     ((count) (execute-count state))
     ((won) state)))
 

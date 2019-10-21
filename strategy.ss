@@ -80,11 +80,6 @@
           'go
           (list-ref choices (random (length choices)))))))
 
-;; given
-(define (peg-monte state assumed-hand)
-  #f
-  )
-
 (define (display-discard-strategy heuristic hand n)
   (let ((deck (list->vector (deck-without hand))))
     (let ((results (reverse (rank-on (combinations hand 4) (heuristic deck hand)))))
