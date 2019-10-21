@@ -1,4 +1,4 @@
-
+;;;; Cribbing tables
 ;;; for now will go with rasmussen's as it's from real play against experts.
 (define (deal-discard cards)
   (crib-discard deal-rasmussen cards))
@@ -129,3 +129,121 @@
      #(4.2 4.4 4.5 4.3 6.7 4.1 4.2 4.1 4.4 5.0 5.5 5.0 4.4)
      #(3.9 4.1 4.2 4.0 6.4 3.8 3.9 3.9 3.7 4.1 5.0 5.0 4.0)
      #(3.9 4.1 4.1 4.0 6.4 3.8 3.9 3.8 3.7 3.5 4.4 4.0 4.8)))
+
+
+;;;; Calculated Tables
+
+;;; Basic API
+(define (build-2d-table x y)
+  (let ((table (make-vector x)))
+    (do ((i 0 (1+ i)))
+        ((= i y) table)
+      (vector-set! table i (make-vector y)))))
+
+(define (get-2d-entry table x y)
+  (vector-ref (vector-ref table x) y))
+
+(define (set-2d-entry! table x y entry)
+  (vector-set! (vector-ref table x)
+               y
+               entry))
+
+(define (update-2d-entry table x y f)
+  (set-2d-entry! table x y
+                 (f (get-2d-entry table x y))))
+
+;;; Persistent tables for expensive calculations
+(define-record-type cribbage-table
+  (fields location recipe))
+
+(define (build-table table)
+  (let ((table-file (cribbage-table-location table)))
+    (unless (file-exists? table-file)
+      (format #t "Cooking table ~a~%" table)
+      (let ((table ((cribbage-table-recipe table))))
+        (format #t "Writing table to ~a~%" table-file)
+        (with-output-to-file table-file
+          (lambda ()
+            (write table)))))))
+
+(define (forced-build-table table)
+  (let ((table-file (cribbage-table-location table)))
+    (when (file-exists? table-file)
+      (delete-file table-file))
+    (format #t "Cooking table ~a~%" table)
+    (let ((table ((cribbage-table-recipe table))))
+      (format #t "Writing table to ~a~%" table-file)
+      (with-output-to-file table-file
+        (lambda ()
+          (write table))))))
+
+(define (fetch-table table)
+  (build-table table)
+  (with-input-from-file (cribbage-table-location table) read))
+
+(define *table-cutoff* 50000)
+
+(define hand-table-deal-maximize-points
+  (make-cribbage-table "calculations/deal-maximize-points.ss"
+                       (lambda ()
+                         (build-card-frequency-table deal-maximize-points *table-cutoff*))))
+
+(define occurrence-table-deal-maximize-points
+  (make-cribbage-table "calculations/pairs-deal-maximize-points.ss"
+                       (lambda ()
+                         (build-card-occurrence-table deal-maximize-points *table-cutoff*))))
+
+(define hand-table-pone-maximize-points
+  (make-cribbage-table "calculations/pone-maximize-points.ss"
+                       (lambda ()
+                         (build-card-frequency-table pone-maximize-points *table-cutoff*))))
+
+(define occurrence-table-pone-maximize-points
+  (make-cribbage-table "calculations/pairs-pone-maximize-points.ss"
+                       (lambda ()
+                         (build-card-occurrence-table pone-maximize-points *table-cutoff*))))
+
+(define cached-cribbage-tables
+  (list hand-table-deal-maximize-points
+        occurrence-table-deal-maximize-points
+        hand-table-pone-maximize-points
+        occurrence-table-pone-maximize-points))
+
+(define (build-all-tables)
+  (format #t "Doing ~a iterations per table~%" *table-cutoff*)
+  (for-all (lambda (table)
+             (time (forced-build-table table)))
+           cached-cribbage-tables))
+
+;;; Estimating hands from discard strategies.
+(define (build-card-occurrence-table discard-strategy trials)
+  (let ((table (build-2d-table 13 13)))
+    (do ((i 0 (fx1+ i)))
+        ((= i trials) table)
+      (let ((hand (list-head (deck) 6)))
+        (for-all (lambda (xy)
+                   (let-values (((x y) (apply values (map rank xy))))
+                     (cond ((= x y)
+                            (update-2d-entry table x y 1+))
+                           (else
+                            (update-2d-entry table x y 1+)
+                            (update-2d-entry table y x 1+)))))
+                 (combinations (discard-strategy hand) 2))))))
+
+(define (build-card-frequency-table discard-strategy trials)
+  (let ((counts (make-vector 13)))
+    (do ((i 0 (fx1+ i)))
+        ((= i trials) counts)
+      (let ((hand (list-head (deck) 6)))
+        (for-all (lambda (card)
+                   (vector-inc! counts (rank card)))
+                 (discard-strategy hand))))))
+
+;;;
+
+
+
+
+
+
+
