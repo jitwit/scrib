@@ -45,6 +45,7 @@
         0)))
 
 (define (score-runs hand)
+  ;; 8-5-t-j-q gets 1 for runs
   (let ((runs (group-with (lambda (x y)
                             (fx= (fx1+ (car x))
                                  (car y)))
@@ -56,9 +57,8 @@
                  runs)
            =>
            (lambda (run)
-             (let ((run (map cdr (car runs))))
-               (fx* (fold-left fx* 1 run)
-                    (length run)))))
+             (fx* (fold-left fx* 1 (map cdr run))
+                  (length run))))
           (else 0))))
 
 (define (score-heels hand)
@@ -149,3 +149,52 @@
     (filter (lambda (card)
               (fx<= (fx+ total (crib:rank card)) 31))
             hand)))
+
+;;; Board States := count | peg | discard
+
+(define (game-won? state)
+  (<= 121 (max (crib-scoreA state)
+               (crib-scoreB state))))
+
+(define (discard-complete? crib)
+  (= 4 (length (crib-crib crib))))
+
+(define (peg-complete? crib)
+  (and (null? (crib-handA crib))
+       (null? (crib-handB crib))))
+
+(define (no-pegs-left? crib)
+  (let ((board (crib-board crib)))
+    (and (null? (valid-pegs board (crib-handA crib)))
+         (null? (valid-pegs board (crib-handB crib))))))
+
+(define (game-phase crib)
+  (cond ((game-won? crib) 'over)
+        ((peg-complete? crib) 'count)
+        ((discard-complete? crib) 'peg)
+        (else 'discard)))
+
+;;; Move checks
+(define (valid-discard? state turn move)
+  (and (= 2 (length move))
+       (eq? turn (crib-turn state))
+       (andmap (lambda (card)
+                 (memq card
+                       (if (eq? turn 'A)
+                           (crib-handA state)
+                           (crib-handB state))))
+               move)))
+
+(define (current-players-hand cribbage)
+  (if (eq? 'A (crib-turn cribbage))
+      (crib-handA cribbage)
+      (crib-handB cribbage)))
+
+(define (actions cribbage)
+  (case (game-phase cribbage)
+    ((discard) (combinations (current-players-hand cribbage) 2)))
+  )
+
+
+
+

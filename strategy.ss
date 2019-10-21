@@ -48,6 +48,12 @@
   (let ((results (maximums-on (combinations hand 4) heuristic)))
     (car results)))
 
+(define (random-discard hand)
+  (let ((discards (combinations hand 4)))
+    (list-ref discards (random (length discards)))))
+
+;;; Pegging
+
 (define (peg-random state)
   (let ((moves (valid-pegs (state-peg-board state) (state-peg-hand state))))
     (if (null? moves)
@@ -73,10 +79,6 @@
       (if (null? choices)
           'go
           (list-ref choices (random (length choices)))))))
-
-(define (random-discard hand)
-  (let ((discards (combinations hand 4)))
-    (list-ref discards (random (length discards)))))
 
 (define (display-discard-strategy heuristic hand)
   (let ((deck (list->vector (deck-without hand))))
@@ -198,3 +200,8 @@
     (format #t "mean:  ~,2f~%stdev: ~,2f~%~%"
             (car stats-crib)
             (cdr stats-crib))))
+
+;;; Actions
+
+
+

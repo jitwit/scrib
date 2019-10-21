@@ -15,116 +15,94 @@
   (crib-update-turn
    (crib-update-last-peg
     (crib-update-board
-     (crib-update-board*
-      crib
-      (curry cons* (crib-board crib)))
+     crib
      (const '()))
     (const #f))
    (const (opposite-player (crib-last-peg crib)))))
 
-(define (update-score crib who dx)
-  (case who
-    ((A) (let ((score (+ dx (crib-scoreA crib))))
-           (when (<= 121 score)
-             (raise-continuable
-              (crib-update-scoreA crib (const 121))))
-           (crib-update-scoreA crib (const score))))
-    ((B) (let ((score (+ dx (crib-scoreB crib))))
-           (when (<= 121 score)
-             (raise-continuable
-              (crib-update-scoreB crib (const 121))))
-           (crib-update-scoreB crib (const score))))))
+(define (update-score state who dx)
+  (if (game-over? state)
+      state
+      (case who
+        ((A) (let ((score (+ dx (crib-scoreA state))))
+               (crib-update-scoreA state (const (min score 121)))))
+        ((B) (let ((score (+ dx (crib-scoreB state))))
+               (crib-update-scoreB state (const (min score 121))))))))
 
 (define (execute-discard crib card+)
   (case (crib-turn crib)
     ((A) (crib-update-handA crib (curry discard card+)))
     ((B) (crib-update-handB crib (curry discard card+)))))
 
-(define (execute-discard-crib crib cards)
+(define (execute-discard-crib state cards)
   (change-turn
-   (crib-update-crib (execute-discard crib cards) (curry append cards))))
+   (crib-update-crib (execute-discard state cards) (curry append cards))))
 
-(define (execute-peg-go crib)
-  (if (no-pegs-left? crib)
-      (move-board (update-score crib (crib-last-peg crib) 1))
-      (change-turn crib)))
+(define (execute-peg-go state)
+  (if (no-pegs-left? state)
+      (move-board (update-score state (crib-last-peg state) 1))
+      (change-turn state)))
 
-(define (execute-peg-discard crib card)
-  (let* ((crib* (crib-update-last-peg
-                 (crib-update-board
-                  (execute-discard crib (list card))
-                  (curry cons* card))
-                 (const (crib-turn crib))))
-         (board* (crib-board crib*))
-         (crib** (update-score crib* (crib-turn crib) (score-peg board*))))
-    (if (= 31 (crib-board-total board*))
-        (move-board crib**)
-        (change-turn crib**))))
+(define (execute-peg-discard state card)
+  (let ((turn (crib-turn state))
+        (board (cons card (crib-board state))))
+    (let ((state* (update-score
+                   (crib-update-last-peg
+                    (crib-update-board*
+                     (crib-update-board
+                      (execute-discard state (list card))
+                      (curry cons* card))
+                     (curry cons* (cons card turn)))
+                    (const turn))
+                   turn
+                   (score-peg board))))
+      (if (= 31 (crib-board-total board))
+          (move-board state*)
+          (change-turn state*)))))
 
 (define (execute-peg crib card/go)
   (if (eq? card/go 'go)
       (execute-peg-go crib)
       (execute-peg-discard crib card/go)))
 
-(define (execute-count crib handA handB)
+(define (execute-count crib)
   (let ((cut (crib-cut crib))
-        (crib (crib-update-handB
-               (crib-update-handA
-                crib
-                (const handA))
-               (const handB))))
-    (redeal-crib
-     (cond ((eq? 'A (crib-dealer crib))
-            (update-score
-             (update-score
-              (update-score
-               crib
-               'B
-               (score-hand (cons cut handB)))
-              'A
-              (score-hand (cons cut handA)))
-             'A
-             (score-crib (cons cut (crib-crib crib)))))
-           (else
-            (update-score
-             (update-score
-              (update-score
-               crib
-               'A
-               (score-hand (cons cut handA)))
-              'B
-              (score-hand (cons cut handB)))
-             'B
-             (score-crib (cons cut (crib-crib crib)))))))))
+        (handA (filter-map (lambda (c.id)
+                             (and (eq? (cdr c.id) 'A)
+                                  (car c.id)))
+                           (crib-board* crib)))
+        (handB (filter-map (lambda (c.id)
+                             (and (eq? (cdr c.id) 'B)
+                                  (car c.id)))
+                           (crib-board* crib))))
+    (let ((scoreA (score-hand (cons cut handA)))
+          (scoreB (score-hand (cons cut handB)))
+          (scoreC (score-hand (cons cut (crib-crib crib))))
+          (crib (crib-update-handB
+                 (crib-update-handA
+                  crib
+                  (const handA))
+                 (const handB))))
+      (redeal-crib
+       (cond
+        ((eq? 'A (crib-dealer crib))
+         (when (verbose-cribbage)
+           (display "cut: ") (display-card cut) (newline)
+           (display-hand-report-score handB scoreB)
+           (display-hand-report-score handA scoreA)
+           (display-hand-report-score (crib-crib crib) scoreC)
+           (sleep (make-time 'time-duration 0 2)))
+         (update-score (update-score (update-score crib 'B scoreB) 'A scoreA) 'A scoreC))
+        (else
+         (when (verbose-cribbage)
+           (display "cut: ") (display-card cut) (newline)
+           (display-hand-report-score handA scoreA)
+           (display-hand-report-score handB scoreB)
+           (display-hand-report-score (crib-crib crib) scoreC)
+           (sleep (make-time 'time-duration 0 2)))
+         (update-score (update-score (update-score crib 'A scoreA) 'B scoreB) 'B scoreC)))))))
 
 ;;; Game Phase predicates
-(define (discard-complete? crib)
-  (= 4 (length (crib-crib crib))))
-
-(define (peg-complete? crib)
-  (and (null? (crib-handA crib))
-       (null? (crib-handB crib))))
-
-(define (no-pegs-left? crib)
-  (let ((board (crib-board crib)))
-    (and (null? (valid-pegs board (crib-handA crib)))
-         (null? (valid-pegs board (crib-handB crib))))))
-
-(define (game-phase crib)
-  (cond ((peg-complete? crib) 'count)
-        ((discard-complete? crib) 'peg)
-        (else 'discard)))
-
-;;; Move checks
-(define (valid-discard? state turn move)
-  (and (= 2 (length move))
-       (eq? turn (crib-turn state))
-       (andmap (lambda (card)
-                 (memq card
-                       (if (eq? turn 'A)
-                           (crib-handA state)
-                           (crib-handB state))))
-               move)))
 
 (define (valid-go? state turn)
   (and (eq? turn (crib-turn state))
@@ -141,11 +119,26 @@
       (valid-go? state turn)
       (valid-peg-discard? state turn move)))
 
+(define (run-cribbage state agentA agentB)
+  ;; does not validate moves
+  (case (game-phase state)
+    ((discard) (let* ((turn (crib-turn state))
+                      (move ((if (eq? turn 'A) agentA agentB)
+                             (crib->discard state)))
+                      (state1 (execute-discard-crib state move)))
+                 (if (and (jack? (crib-cut state))
+                          (discard-complete? state))
+                     (update-score state (crib-dealer state) 2)
+                     state)))
+    ((peg) (let* ((turn (crib-turn state))
+                  (move ((if (eq? turn 'A) agentA agentB)
+                         (crib->peg state))))
+             (execute-peg state move)))
+    ((count) (error 'run-cribbage "incomplete-implementation" state agentA agentB))))
+
 ;;; The core
 (define (make-cribbage agentA agentB)
   (letrec ((state (deal-crib 0 0 (random-dealer)))
-           (handA #f)
-           (handB #f)
            (run (lambda ()
                   (case (game-phase state)
                     ((discard)
@@ -157,8 +150,6 @@
                        (set! state (execute-discard-crib state move))
                        (when (discard-complete? state)
                          ;; remember hands before discarding
-                         (set! handA (crib-handA state))
-                         (set! handB (crib-handB state))
                          (when (jack? (crib-cut state))
                            ;; his heels!
                            (set! state (update-score state (crib-dealer state) 2))))
@@ -172,39 +163,34 @@
                        (set! state (execute-peg state move))
                        'done))
                     ((count)
-                     (set! state (execute-count state handA handB))
+                     (set! state (execute-count state))
                      'done)
+                    ((over) state)
                     (else (error 'cribbage "bad phase" state))))))
-
     (lambda (M)
       (case M
-        ((run)
-         (call/cc
-          (lambda (k)
-            (with-exception-handler
-                (lambda (e)
-                  (k e))
-              run))))
+        ((run) (run))
         ((god-mode) state)
         (else (error 'cribbage "dunno, man" M))))))
 
 (define (run-cribbage-game agentA agentB)
-  (parameterize ((verbose-cribbage #f))
-    (let ((game (make-cribbage agentA agentB)))
-      (let loop ((result (game 'run)))
-        (case result
-          ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
-          (else result))))))
+  ;;  (parameterize ((verbose-cribbage #f)))
+  (let ((game (make-cribbage agentA agentB)))
+    (let loop ((result (game 'run)))
+      (case result
+        ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
+        (else result)))))
 
 (define (compare-agents agentA agentB trials)
-  (let ((wins-a 0)
-        (wins-b 0))
-    (do ((trials trials (1- trials)))
-        ((zero? trials) (cons wins-a wins-b))
-      (let ((result (run-cribbage-game agentA agentB)))
-        (if (eq? (crib-scoreA result) 121)
-            (inc! wins-a)
-            (inc! wins-b))))))
+  (parameterize ((verbose-cribbage #f))
+    (let ((wins-a 0)
+          (wins-b 0))
+      (do ((trials trials (1- trials)))
+          ((zero? trials) (cons wins-a wins-b))
+        (let ((result (run-cribbage-game agentA agentB)))
+          (if (eq? (crib-scoreA result) 121)
+              (inc! wins-a)
+              (inc! wins-b)))))))
 
 ;;; Mechanics
 (define (deal-crib scoreA scoreB dealer)
@@ -222,8 +208,6 @@
                '())))
 
 (define (redeal-crib crib)
-  (when (verbose-cribbage)
-    (display-verbose-scores crib))
   (let ((cards (list-head (deck) 13)))
     (deal-crib (crib-scoreA crib)
                (crib-scoreB crib)

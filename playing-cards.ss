@@ -92,8 +92,7 @@
       (for-all (lambda (card)
                  (display #\-)
                  (display-card card))
-               (cdr hand))))
-  (newline))
+               (cdr hand)))))
 
 ;; unsorted version
 (define (display-hand* hand)
@@ -102,8 +101,7 @@
     (for-all (lambda (card)
                (display #\-)
                (display-card card))
-             (cdr hand)))
-  (newline))
+             (cdr hand))))
 
 (define (deck)
   (shuffle (iota 52)))

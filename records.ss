@@ -28,6 +28,10 @@
           board
           board*))
 
+(define-record-type cribbage-agent
+  (fields discard-strategy
+          pegging-strategy))
+
 (define (crib->discard crib)
   (case (crib-turn crib)
     ((A) (make-state-discard (eq? 'A (crib-dealer crib))
