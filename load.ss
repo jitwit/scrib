@@ -6,7 +6,9 @@
   '(rando
     maximus
     minimus
-    terminal))
+    terminus
+    monte
+    carlo))
 
 (define source-files
   '("term.ss"

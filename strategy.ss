@@ -45,8 +45,7 @@
     (discard-with-heuristic hand (pone-minimize-crib-heuristic deck hand))))
 
 (define (discard-with-heuristic hand heuristic)
-  (let ((results (maximums-on (combinations hand 4) heuristic)))
-    (car results)))
+  (cdr (maximum-on (combinations hand 4) heuristic)))
 
 (define (random-discard hand)
   (let ((discards (combinations hand 4)))
@@ -63,12 +62,10 @@
 (define (peg-best-single state)
   (let ((hand (state-peg-hand state))
         (board (state-peg-board state)))
-    (let ((choices (maximums-on (valid-pegs board hand)
-                                (lambda (peg)
-                                  (score-peg (cons peg board))))))
-      (if (null? choices)
+    (let ((pegs (valid-pegs board hand)))
+      (if (null? pegs)
           'go
-          (list-ref choices (random (length choices)))))))
+          (cdr (maximum-on pegs (lambda (peg) (score-peg (cons peg board)))))))))
 
 (define (peg-worst-single state)
   (let ((hand (state-peg-hand state))
@@ -201,8 +198,4 @@
     (format #t "mean:  ~,2f~%stdev: ~,2f~%~%"
             (car stats-crib)
             (cdr stats-crib))))
-
-
-
-
 

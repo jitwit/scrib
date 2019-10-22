@@ -1,5 +1,5 @@
 
-(define crib-terminal
+(define crib-terminus
   (lambda (state)
     (cond ((state-discard? state)
            (prompt-discard state))
