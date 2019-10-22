@@ -90,112 +90,55 @@
                             (car result))))
                 (list-head results n)))))
 
-;;; Agents
 
-(define (simple-agent deal-strategy pone-strategy)
-  (cons deal-strategy pone-strategy))
+;;;; Reconstructing cribbage state from view
 
-(define (simple-agent-deal agent)
-  (car agent))
+;;; randomly and dumbly reconstruct a crib state from a peg view
+;;; in reconstructed view, A is us, B is opponent.
+;;; the goal is then to maximize something like (- scoreA scoreB).
+(define (peg->crib state discards)
+  (let ((board-cards (state-peg-board* state))
+        (dealer (if (state-peg-dealer? state) 'A 'B))
+        (last-peg (last-peg-view->cribbage (state-peg-last-peg state))))
+    (let* ((opponent-cards (board-view->opponent-cards board-cards))
+           (remaining (- 4 (length opponent-cards)))
+           (known-cards `(,(state-peg-cut state)
+                          ,@(state-peg-hand state)
+                          ,@discards
+                          ,@(map car board-cards)))
+           (deal (random-deal known-cards (+ 4 remaining)))
+           (assumed-hand (list-head deal remaining))
+           (random-crib (list-tail deal remaining)))
+      (make-crib dealer
+                 'A
+                 (state-peg-scoreA state)
+                 (state-peg-scoreB state)
+                 (state-peg-hand state)
+                 assumed-hand
+                 random-crib
+                 (state-peg-cut state)
+                 last-peg
+                 (state-peg-board state)
+                 (board-view->cribbage board-cards)))))
 
-(define (simple-agent-pone agent)
-  (cdr agent))
+(define (board-view->cribbage board-cards)
+  (map (lambda (c.id)
+         (cons (car c.id)
+               (if (eq? 'you (cdr c.id))
+                   'A
+                   'B)))
+       board-cards))
 
-(define simple-agent-maximize
-  (simple-agent deal-maximize-points pone-maximize-points))
+(define (last-peg-view->cribbage last-peg)
+  (case last-peg
+    ((you) 'A)
+    ((opponent) 'B)
+    (else #f)))
 
-(define simple-agent-random
-  (simple-agent random-discard random-discard))
+(define (board-view->opponent-cards board-cards)
+  (filter-map (lambda (c.id)
+                (and (eq? 'opponent (cdr c.id))
+                     (car c.id)))
+              board-cards))
 
-(define simple-agent-defensive
-  (simple-agent deal-maximize-points pone-minimize-discard))
-
-(define simple-agent-crib-minded
-  (simple-agent deal-maximize-discard pone-minimize-discard))
-
-;;; Simulations
-
-(define (simulate-agent-hand player-a player-b)
-  (let ((cards (list-head (deck) 13)))
-    (let ((cut (car cards))
-          (deal-a (list-head (cdr cards) 6))
-          (deal-b (list-tail (cdr cards) 6)))
-      (let ((hand-a ((simple-agent-deal player-a) deal-a))
-            (hand-b ((simple-agent-pone player-b) deal-b)))
-        (let ((crib (append (discard hand-a deal-a)
-                            (discard hand-b deal-b))))
-          (cons (+ (score-deal (cons cut hand-a))
-                   (score-crib (cons cut crib)))
-                (score-pone (cons cut hand-b))))))))
-
-(define (simulate-agent-matchup player-a player-b trials)
-  (let ((deals-a (make-vector trials))
-        (deals-b (make-vector trials))
-        (pones-a (make-vector trials))
-        (pones-b (make-vector trials)))
-    (do ((i 0 (1+ i)))
-        ((= i trials)
-         (report-agent-results deals-a pones-a deals-b pones-b))
-      (let ((r1 (simulate-agent-hand player-a player-b))
-            (r2 (simulate-agent-hand player-b player-a)))
-        (vector-set! deals-a i (car r1))
-        (vector-set! pones-b i (cdr r1))
-        (vector-set! deals-b i (car r2))
-        (vector-set! pones-a i (cdr r2))))))
-
-(define (report-agent-results deals-a pones-a deals-b pones-b)
-  (let ((stats-deal-a (mean.stdev deals-a))
-        (stats-pone-a (mean.stdev pones-a))
-        (stats-deal-b (mean.stdev deals-b))
-        (stats-pone-b (mean.stdev pones-b)))
-    (display-ln "Agent A")
-    (format #t "mean deal: ~,2f~%mean pone: ~,2f~%~%"
-            (car stats-deal-a)
-            (cdr stats-pone-a))
-    (display-ln "Agent B")
-    (format #t "mean deal: ~,2f~%mean pone: ~,2f~%~%"
-            (car stats-deal-b)
-            (cdr stats-pone-b))))
-
-(define (simulate-scores-for-strategies deal-strategy pone-strategy trials)
-  (let ((dealer-results (make-vector trials))
-        (crib-results (make-vector trials))
-        (pone-results (make-vector trials)))
-    (do ((j 0 (fx1+ j)))
-        ((fx= j trials)
-         (report-simulation-results dealer-results crib-results pone-results))
-      (let ((cards (list-head (deck) 13)))
-        (let ((cut (car cards))
-              (deal-a (list-head (cdr cards) 6))
-              (deal-b (list-tail (cdr cards) 6)))
-          (let ((hand-a (deal-strategy deal-a))
-                (hand-b (pone-strategy deal-b)))
-            (let ((crib (append (discard hand-a deal-a)
-                                (discard hand-b deal-b))))
-              (vector-set! dealer-results
-                           j
-                           (score-deal (cons cut hand-a)))
-              (vector-set! crib-results
-                           j
-                           (score-crib (cons cut crib)))
-              (vector-set! pone-results
-                           j
-                           (score-pone (cons cut hand-b))))))))))
-
-(define (report-simulation-results deals cribs pones)
-  (let ((stats-deal (mean.stdev deals))
-        (stats-crib (mean.stdev cribs))
-        (stats-pone (mean.stdev pones)))
-    (display-ln "Dealer Hands")
-    (format #t "mean:  ~,2f~%stdev: ~,2f~%~%"
-            (car stats-deal)
-            (cdr stats-deal))
-    (display-ln "Pone Hands")
-    (format #t "mean:  ~,2f~%stdev: ~,2f~%~%"
-            (car stats-pone)
-            (cdr stats-pone))
-    (display-ln "Cribs")
-    (format #t "mean:  ~,2f~%stdev: ~,2f~%~%"
-            (car stats-crib)
-            (cdr stats-crib))))
 

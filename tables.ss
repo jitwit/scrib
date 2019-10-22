@@ -239,11 +239,3 @@
                    (vector-inc! counts (rank card)))
                  (discard-strategy hand))))))
 
-;;;
-
-
-
-
-
-
-
