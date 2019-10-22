@@ -1,5 +1,5 @@
 
-(define crib-maximus
+(define maximus
   (lambda (state)
     (cond ((state-discard? state)
            (let ((hand (state-discard-hand state)))
@@ -9,3 +9,6 @@
           ((state-peg? state)
            (peg-best-single state))
           (else (error 'crib-rando "unknown state" state)))))
+
+(define Max
+  (make-cribbot 'Max maximus))

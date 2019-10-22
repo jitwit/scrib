@@ -100,7 +100,9 @@
            (display-hand-report-score handB scoreB)
            (display-hand-report-score (crib-crib crib) scoreC)
            (sleep (make-time 'time-duration 0 2)))
-         (update-score (update-score (update-score crib 'A scoreA) 'B scoreB) 'B scoreC)))))))
+         (update-score
+          (update-score
+           (update-score crib 'A scoreA) 'B scoreB) 'B scoreC)))))))
 
 ;;; Game Phase predicates
 
@@ -138,20 +140,32 @@
     ((count) (execute-count state))
     ((won) state)))
 
-(define (run-agents state agentA agentB)
-  (let loop ((state state))
-    (let ((turn (crib-turn state)))
-      (case (game-phase state)
-        ((discard)
-         (if (eq? turn 'A)
-             (loop (run-cribbage state (agentA (crib->discard state))))
-             (loop (run-cribbage state (agentB (crib->discard state))))))
-        ((peg)
-         (if (eq? turn 'A)
-             (loop (run-cribbage state (agentA (crib->peg state))))
-             (loop (run-cribbage state (agentB (crib->peg state))))))
-        ((count) (loop (execute-count state)))
-        ((won) state)))))
+(define (run-agents state A B)
+  (let* ((now (current-time))
+         (end #f)
+         (out (open-output-file (format "games/~a-~a-~a-~a"
+                                        (cribbot-identity A)
+                                        (cribbot-identity B)
+                                        (time-second now)
+                                        (time-nanosecond now))))
+         (agent-A (cribbot-strategy A))
+         (agent-B (cribbot-strategy B)))
+    (let loop ((state state))
+      (write (crib->sexp state) out) (newline out)
+      (let ((turn (crib-turn state)))
+        (case (game-phase state)
+          ((discard)
+           (if (eq? turn 'A)
+               (loop (run-cribbage state (agent-A (crib->discard state))))
+               (loop (run-cribbage state (agent-B (crib->discard state))))))
+          ((peg)
+           (if (eq? turn 'A)
+               (loop (run-cribbage state (agent-A (crib->peg state))))
+               (loop (run-cribbage state (agent-B (crib->peg state))))))
+          ((count) (loop (execute-count state)))
+          ((won) (set! end state)))))
+    (close-output-port out)
+    end))
 
 ;;; The core
 (define (make-cribbage agentA agentB)
@@ -183,21 +197,21 @@
 
 (define (run-cribbage-game agent)
   (parameterize ((verbose-cribbage #t))
-    (let ((game (make-cribbage agentA crib-terminus)))
+    (let ((game (make-cribbage agent crib-terminus)))
       (let loop ((result (game 'run)))
         (case result
           ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
           (else result))))))
 
-(define (compare-agents agentA agentB trials)
+(define (compare-agents A B trials)
   (let ((wins-a 0)
         (wins-b 0))
     (do ((trials trials (1- trials)))
         ((zero? trials) (cons wins-a wins-b))
       (format #t "~a - ~a~%" wins-a wins-b)
       (let ((result (time (run-agents (deal-crib 0 0 (random-dealer))
-                                      agentA
-                                      agentB))))
+                                      A
+                                      B))))
         (if (eq? (crib-scoreA result) 121)
             (inc! wins-a)
             (inc! wins-b))))))

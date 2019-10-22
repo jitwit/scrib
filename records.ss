@@ -79,6 +79,18 @@
                                           'opponent)))
                               (crib-board* crib))))))
 
+(define (crib->sexp crib)
+  `((dealer . ,(crib-dealer crib))
+    (turn . ,(crib-turn crib))
+    (scoreA . ,(crib-scoreA crib))
+    (scoreB . ,(crib-scoreB crib))
+    (handA . ,(crib-handA crib))
+    (handB . ,(crib-handB crib))
+    (crib . ,(crib-crib crib))
+    (cut . ,(crib-cut crib))
+    (board . ,(crib-board crib))
+    (board* . ,(crib-board* crib))))
+
 (define (crib-update-dealer crib f)
   (make-crib (f (crib-dealer crib))
              (crib-turn crib)
@@ -222,3 +234,8 @@
              (crib-board crib)
              (f (crib-board* crib))))
 
+(define-record-type cribbage-table
+  (fields location recipe))
+
+(define-record-type cribbot
+  (fields identity strategy))

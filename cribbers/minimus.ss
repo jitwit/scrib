@@ -9,3 +9,6 @@
           ((state-peg? state)
            (peg-best-single state))
           (else (error 'crib-rando "unknown state" state)))))
+
+(define Mindi
+  (make-cribbot 'Mindi crib-minimus))

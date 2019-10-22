@@ -4,8 +4,7 @@
 
 ;; given peg view, dumbly reconstruct a random state
 (define (make-crib-monte)
-  (let ((discards '())
-        (trials (monte-iterations)))
+  (let ((discards '()))
     (lambda (state)
       (cond
        ((state-discard? state)
@@ -19,7 +18,7 @@
        ((state-peg? state)
         (if (null? (valid-pegs (state-peg-board state) (state-peg-hand state)))
             'go
-            (monte-peg state discards trials)))))))
+            (monte-peg state discards (monte-iterations))))))))
 
 (define (monte-peg state discards trials)
   (let ((moves '()))
@@ -57,3 +56,5 @@
                    (crib-scoreB guess))
                 action))))
 
+(define Monte
+  (make-cribbot 'Monte (make-crib-monte)))

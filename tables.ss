@@ -153,9 +153,6 @@
                  (f (get-2d-entry table x y))))
 
 ;;; Persistent tables for expensive calculations
-(define-record-type cribbage-table
-  (fields location recipe))
-
 (define (build-table table)
   (let ((table-file (cribbage-table-location table)))
     (unless (file-exists? table-file)

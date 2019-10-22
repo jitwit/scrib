@@ -11,3 +11,7 @@
                  'go
                  (list-ref moves (random (length moves))))))
           (else (error 'crib-rando "unknown state" state)))))
+
+
+(define Randy
+  (make-cribbot 'randy crib-rando))
