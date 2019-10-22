@@ -24,10 +24,10 @@
 
 (define lang-score
   (re:. (re:string "<div id=\"score\">")
-        lang-number
+        ;;        lang-number
         (re:? #\*)
         #\-
-        lang-number
+        ;;        lang-number
         (re:? #\*)))
 
 (define (fetch-daily-hand)
