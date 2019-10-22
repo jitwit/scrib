@@ -30,7 +30,6 @@
         ;; start with maximin because we know it's our turn when this is called
         (push! (monte-maximin guess) moves)))))
 
-
 ;;; assumed to be called form search, where list of actions is
 ;;; non-empty
 (define (monte-maximin state)
@@ -57,5 +56,4 @@
     (else (cons (- (crib-scoreA guess)
                    (crib-scoreB guess))
                 action))))
-
 

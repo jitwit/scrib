@@ -1,13 +1,10 @@
-(source-directories
- (cons* "../chez-charset"
-        "../chez-brzozowski/"
-        (source-directories)))
-(library-directories
- (cons* "../chez-charset"
-        "../chez-brzozowski/"
-        (library-directories)))
+(import (charset)
+        (brzozowski))
 
-(load "parser.scm")
+(load "load.ss")
+
+(define display-length
+  (make-parameter 3))
 
 (define url "https://www.dailycribbagehand.org/")
 (define hand-file
@@ -18,9 +15,9 @@
             (date-year now))))
 
 (define lang-card
-  (re:. (re:string "cards/normal/")
-        (string->charset "atjqk23456789")
-        (string->charset "sdch")))
+  (re:. (re:string "normal/")
+        (re:charset "atjqk23456789")
+        (re:charset "sdch")))
 
 (define lang-score
   (re:. (re:string "<div id=\"score\">")
@@ -67,16 +64,9 @@
 (define (main)
   (fetch-daily-hand)
   (let ((cards (map parse-match (read-cards))))
-    (display-discard-strategy deal-maximize-points-heuristic cards 3)
+    (display-discard-strategy deal-maximize-points-heuristic cards (display-length))
     (newline) (newline)
-    (display-discard-strategy pone-maximize-points-heuristic cards 3)
+    (display-discard-strategy pone-maximize-points-heuristic cards (display-length))
     (newline) (newline)
-    (display-discard-strategy pone-minimize-crib-heuristic cards 3)
+    (display-discard-strategy pone-minimize-crib-heuristic cards (display-length))
     (newline) (newline)))
-
-
-
-
-
-
-

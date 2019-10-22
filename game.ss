@@ -138,6 +138,21 @@
     ((count) (execute-count state))
     ((won) state)))
 
+(define (run-agents state agentA agentB)
+  (let loop ((state state))
+    (let ((turn (crib-turn state)))
+      (case (game-phase state)
+        ((discard)
+         (if (eq? turn 'A)
+             (loop (run-cribbage state (agentA (crib->discard state))))
+             (loop (run-cribbage state (agentB (crib->discard state))))))
+        ((peg)
+         (if (eq? turn 'A)
+             (loop (run-cribbage state (agentA (crib->peg state))))
+             (loop (run-cribbage state (agentB (crib->peg state))))))
+        ((count) (loop (execute-count state)))
+        ((won) state)))))
+
 ;;; The core
 (define (make-cribbage agentA agentB)
   (letrec ((state (deal-crib 0 0 (random-dealer)))
@@ -166,25 +181,26 @@
         ((god-mode) state)
         (else (error 'cribbage "dunno, man" M))))))
 
-(define (run-cribbage-game agentA agentB)
-  ;;  (parameterize ((verbose-cribbage #f)))
-  (let ((game (make-cribbage agentA agentB)))
-    (let loop ((result (game 'run)))
-      (case result
-        ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
-        (else result)))))
+(define (run-cribbage-game agent)
+  (parameterize ((verbose-cribbage #t))
+    (let ((game (make-cribbage agentA crib-terminus)))
+      (let loop ((result (game 'run)))
+        (case result
+          ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
+          (else result))))))
 
 (define (compare-agents agentA agentB trials)
-  (parameterize ((verbose-cribbage #f))
-    (let ((wins-a 0)
-          (wins-b 0))
-      (do ((trials trials (1- trials)))
-          ((zero? trials) (cons wins-a wins-b))
-        (format #t "~a - ~a~%" wins-a wins-b)
-        (let ((result (time (run-cribbage-game agentA agentB))))
-          (if (eq? (crib-scoreA result) 121)
-              (inc! wins-a)
-              (inc! wins-b)))))))
+  (let ((wins-a 0)
+        (wins-b 0))
+    (do ((trials trials (1- trials)))
+        ((zero? trials) (cons wins-a wins-b))
+      (format #t "~a - ~a~%" wins-a wins-b)
+      (let ((result (time (run-agents (deal-crib 0 0 (random-dealer))
+                                      agentA
+                                      agentB))))
+        (if (eq? (crib-scoreA result) 121)
+            (inc! wins-a)
+            (inc! wins-b))))))
 
 ;;; Mechanics
 (define (deal-crib scoreA scoreB dealer)
