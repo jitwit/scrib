@@ -1,5 +1,5 @@
 (define maggie-iterations
-  (make-parameter 24))
+  (make-parameter 8))
 
 ;;; remember discards
 (define (make-crib-maggie)

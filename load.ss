@@ -21,8 +21,8 @@
     "cribbage.ss"
     "visuals.ss"
     "tables.ss"
-    "strategy.ss"
-    ))
+    "study.ss"
+    "strategy.ss"))
 
 (define table-cutoff
   (make-parameter 100000))
@@ -53,6 +53,11 @@
 (define (random-element X)
   (list-ref X (random (length X))))
 
+(define (lookup key associations)
+  (cond ((assoc key associations)
+         => cdr)
+        (else (error 'lookup "no key" key associations))))
+
 (define C0
   (deal-crib 0 0 'A))
 
@@ -80,3 +85,5 @@
 (random-seed
  (time-nanosecond
   (current-time)))
+
+

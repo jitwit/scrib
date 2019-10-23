@@ -193,3 +193,4 @@
       (let ((j (random-weighted-by-table frequencies)))
         (push! j deal)
         (update-frequency frequencies initial j)))))
+
