@@ -1,6 +1,6 @@
 
 (define monte-iterations
-  (make-parameter 12))
+  (make-parameter 30))
 
 ;; given peg view, dumbly reconstruct a random state
 (define (make-crib-monte)
@@ -16,9 +16,10 @@
                  (set! discards (discard (pone-maximize-points hand) hand))
                  discards))))
        ((state-peg? state)
-        (if (null? (valid-pegs (state-peg-board state) (state-peg-hand state)))
-            'go
-            (monte-peg state discards (monte-iterations))))))))
+        (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
+          (if (null? pegs)
+              'go
+              (monte-peg state discards (monte-iterations)))))))))
 
 (define (monte-peg state discards trials)
   (let ((moves '()))

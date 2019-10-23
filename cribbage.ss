@@ -1,6 +1,5 @@
 ;;;;; Encoding Cribbage
 
-
 ;;;; Scoring Cribbage
 
 (define (crib:pair? xy)
@@ -8,9 +7,6 @@
 
 (define (crib:rank card)
   (fx1+ (fxmin (rank card) 9)))
-
-;; Most scoring procedures expect argument variable hand to be the cut
-;; cons'ed to the hand.
 
 (define pair-table
   (let ((table '#vfx(0 0 2 6 12 20)))
@@ -181,9 +177,12 @@
 
 (define (score-peg-pairs board)
   (if (pair? board)
-      (let ((n (length (car (group-with = (map rank board))))))
-        ;;; 2 * (choose n 2) pairs out of top grouping
-        (fxsll (s:choose n 2) 1))
+      (let ((r0 (rank (car board))))
+        (let loop ((n 1) (board (cdr board)))
+          (if (and (pair? board)
+                   (fx= r0 (rank (car board))))
+              (loop (fx1+ n) (cdr board))
+              (pair-table n))))
       0))
 
 (define (simple-run? ranks n)
@@ -220,7 +219,8 @@
 
 (define (peg-complete? crib)
   (and (null? (crib-handA crib))
-       (null? (crib-handB crib))))
+       (null? (crib-handB crib))
+       (not (crib-last-peg crib))))
 
 (define (no-pegs-left? crib)
   (let ((board (crib-board crib)))
@@ -343,6 +343,8 @@
       (execute-peg-go crib)
       (execute-peg-discard crib card/go)))
 
+;;; pretty severe bug, a lot of final go's aren't being counted. I think this is fixed
+;;; by forcing a final go if last-peg is non-false...
 (define (execute-peg-go state)
   (if (no-pegs-left? state)
       (move-board (update-score state (crib-last-peg state) 1))

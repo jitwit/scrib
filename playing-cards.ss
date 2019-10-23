@@ -157,3 +157,11 @@
                  (for-all display fragments)
                  (newline))
                (apply map list (map huge-card hand)))))
+
+(define (display-fragments rendered-hands)
+  (if (null? rendered-hands)
+      (newline)
+      (for-all (lambda (fragments)
+                 (for-all display fragments)
+                 (newline))
+               (apply map list rendered-hands))))

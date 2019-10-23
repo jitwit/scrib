@@ -1,6 +1,5 @@
-
 (define maggie-iterations
-  (make-parameter 12))
+  (make-parameter 30))
 
 ;;; remember discards
 (define (make-crib-maggie)
@@ -17,40 +16,22 @@
                  discards))))
        ((state-peg? state)
         (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
-          (cond ((null? pegs) 'go)
-                ((null? (cdr pegs)) (car pegs))
-                (else (peg-from-random-states state discards (maggie-iterations))))))))))
+          (if (null? pegs)
+              'go
+              (peg-from-random-states state discards (maggie-iterations)))))))))
 
 ;;; Maggie does min-max from a bunch of randomly reconstructed cribs
 ;;; to select the best peg.
-(define Maggie
-  (make-cribbot 'Maggie (make-crib-maggie)))
-
-(define (random-element-weighted W n)
-  (let ((r (random n)))
-    (let loop ((r r) (W W))
-      (if (or (null? (cdr W))
-              (< r (cdar W)))
-          (caar W)
-          (loop (- r (cdar W)) (cdr W))))))
 
 ;;; remember discards
 (define (peg-from-random-states state discards trials)
   (let ((pegs (make-eq-hashtable)))
     (do ((i 0 (1+ i)))
         ((= i trials)
-         ;;
-         ;;         (display-ln (hashtable-cells pegs))
-         ;;         (cadr (maximum-on (vector->list (hashtable-cells pegs)) cdr))
-         ;;
-         (random-element-weighted (vector->list (hashtable-cells pegs)) trials)
-         )
+         (let ((peg-frequencies (vector->list (hashtable-cells pegs))))
+           (cadr (maximum-on peg-frequencies cdr))))
       (let ((result (maggie-max (peg->crib state discards))))
-        ;; start with maximin because we know it's our turn when this is called
-        (hashtable-update! pegs
-                           (cdr result)
-                           fx1+
-                           0)))))
+        (hashtable-update! pegs (cdr result) fx1+ 0)))))
 
 (define (maggie-max state)
   (maximum-on (cribbage-actions state)
@@ -77,3 +58,5 @@
                    (crib-scoreB guess))
                 action))))
 
+(define Maggie
+  (make-cribbot 'Maggie (make-crib-maggie)))

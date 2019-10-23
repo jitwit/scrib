@@ -3,11 +3,8 @@ agentA := Maggie
 agentB := Monte
 
 run : load.ss
-	echo "(time (compare-agents $(agentA) $(agentB) $(agent-iterations))))" \
-	| scheme -q --optimize-level 3 $<
-
-Monte : load.ss
-	echo "(run-cribbage-game Monte)" | scheme -q $<
+	echo "(time (compare-agents $(agentA) $(agentB) $(agent-iterations))))" | \
+		scheme -q --optimize-level 3 $<
 
 clean :
 	rm -rf *~

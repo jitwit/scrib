@@ -1,4 +1,15 @@
 
+(define (pretty-board-state board*)
+  (display-fragments
+   (map (lambda (c.id)
+          (case (cdr c.id)
+            ((A) `(,(make-string 7 #\space)
+                   ,@(huge-card (car c.id))))
+            ((B) `(,@(huge-card (car c.id))
+                   ,(make-string 7 #\space)))))
+        board*))
+  (newline))
+
 ;;; progress bar when comparing agents
 (define (display-progress-bar A B N)
   (let ((progress (ceiling (* 100 (/ (+ A B) N))))
@@ -19,9 +30,11 @@
     (case phase
       ((discard)
        (format #t "~a~%~a ~a~%" status (crib-scoreB state) (crib-scoreA state))
-       (display-huge-hand (crib-handB state)))
+       (newline)
+       (display-huge-hand (crib-handB state))
+       (newline))
       ((peg)
-       (display-huge-hand (map car (crib-board* state)))
+       (pretty-board-state (crib-board* state))
        (format #t "~a~%~a ~a~%" status (crib-scoreB state) (crib-scoreA state))
        (display-huge-hand (list (crib-cut state)))
        (display-huge-hand (crib-board state))
@@ -35,16 +48,18 @@
          (let ((ordered-hands (if (eq? player (crib-dealer state))
                                   (list handA handB)
                                   (list handB handA))))
-           (display-huge-hand (map car (crib-board* state)))
+           (pretty-board-state (crib-board* state))
            (display-huge-hand (list cut-card))
            (for-all (lambda (hand)
+                      (newline)
                       (display-huge-hand hand)
-                      (format #t "Scores ~a~%"
+                      (format #t "scores ~a~%~%"
                               (score-hand (cons cut-card hand))))
                     ordered-hands)
+           (newline)
            (display-huge-hand crib)
-           (format #t "Scores ~a~%" (score-crib (cons cut-card crib)))
-           (format #t "~%Before count ~a ~a~%" (crib-scoreB state) (crib-scoreA state))
+           (format #t "scores ~a~%~%" (score-crib (cons cut-card crib)))
+           (format #t "~%B.C. ~a ~a~%" (crib-scoreB state) (crib-scoreA state))
            (format #t "Enter anything to continue~%")
            (read))))
       ((won)
