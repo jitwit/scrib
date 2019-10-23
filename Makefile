@@ -7,6 +7,9 @@ montemonte : load.ss
 montemax : load.ss
 	echo "(time (parameterize ((monte-iterations $(monte-iterations))) (compare-agents Monte Max $(agent-iterations))))" | scheme -q --optimize-level 3 $<
 
+montemindi : load.ss
+	echo "(time (parameterize ((monte-iterations $(monte-iterations))) (compare-agents Mindi Monte $(agent-iterations))))" | scheme -q --optimize-level 3 $<
+
 mindimax : load.ss
 	echo "(time (compare-agents Mindi Max $(agent-iterations))))" | scheme -q --optimize-level 3 $<
 

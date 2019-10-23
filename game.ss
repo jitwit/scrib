@@ -191,18 +191,32 @@
           ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
           (else result))))))
 
+(define (display-progress-bar A B N)
+  (let ((progress (ceiling (* 100 (/ (+ A B) N))))
+        (bar-A (round (/ (* 100 A) N)))
+        (bar-B (round (/ (* 100 B) N))))
+    (display #\[)
+    (display-with-foreground 'light-green (make-string bar-A #\~))
+    (display-with-foreground 'light-red (make-string (- 100 bar-A bar-B) #\?))    
+    (display-with-foreground 'light-cyan (make-string bar-B #\~))
+    (display-ln #\])))
+
 (define (compare-agents A B trials)
   (let ((wins-a 0)
-        (wins-b 0))
+        (wins-b 0)
+        (N trials))
     (do ((trials trials (1- trials)))
-        ((zero? trials) (cons wins-a wins-b))
-      (format #t "~a - ~a~%" wins-a wins-b)
+        ((zero? trials)
+         (format #t "~a won ~,2f% over ~a~%" (cribbot-identity A) (/ wins-a N 1/100) (cribbot-identity B)))
       (let ((result (time (run-agents (deal-crib 0 0 (random-dealer))
                                       A
                                       B))))
         (if (eq? (crib-scoreA result) 121)
             (inc! wins-a)
-            (inc! wins-b))))))
+            (inc! wins-b))
+        (format #t "~a v ~a~%" (cribbot-identity A) (cribbot-identity B))
+        (format #t "~a - ~a out of ~a~%" wins-a wins-b N)
+        (display-progress-bar wins-a wins-b N)))))
 
 ;;; Mechanics
 (define (deal-crib scoreA scoreB dealer)
