@@ -118,3 +118,6 @@
                        (list (crib-handB state)
                              (crib-handA state)
                              (crib-crib state)))))))))
+(random-seed
+ (time-nanosecond
+  (current-time)))

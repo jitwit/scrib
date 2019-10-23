@@ -31,12 +31,12 @@
 
 (define (execute-discard crib card+)
   (case (crib-turn crib)
-    ((A) (crib-update-handA crib (curry discard card+)))
-    ((B) (crib-update-handB crib (curry discard card+)))))
+    ((A) (crib-update-handA crib (lambda (handA) (discard card+ handA))))
+    ((B) (crib-update-handB crib (lambda (handB) (discard card+ handB))))))
 
 (define (execute-discard-crib state cards)
   (change-turn
-   (crib-update-crib (execute-discard state cards) (curry append cards))))
+   (crib-update-crib (execute-discard state cards) (lambda (crib) (append cards crib)))))
 
 (define (execute-peg-go state)
   (if (no-pegs-left? state)
@@ -51,8 +51,8 @@
                     (crib-update-board*
                      (crib-update-board
                       (execute-discard state (list card))
-                      (curry cons* card))
-                     (curry cons* (cons card turn)))
+                      (lambda (board) (cons* card board)))
+                     (lambda (board*) (cons* (cons card turn) board*)))
                     (const turn))
                    turn
                    (score-peg board))))
