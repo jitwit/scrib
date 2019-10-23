@@ -8,6 +8,7 @@
   '(rando
     maximus
     minimus
+    maggie
     terminus
     monte
     carlo))
