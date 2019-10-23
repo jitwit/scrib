@@ -3,10 +3,10 @@
   (display-fragments
    (map (lambda (c.id)
           (case (cdr c.id)
-            ((A) `(,(make-string 7 #\space)
-                   ,@(huge-card (car c.id))))
-            ((B) `(,@(huge-card (car c.id))
-                   ,(make-string 7 #\space)))))
+            ((A) `(,@(huge-card (car c.id))
+                   ,(make-string 7 #\space)))
+            ((B) `(,(make-string 7 #\space)
+                   ,@(huge-card (car c.id))))))
         board*))
   (newline))
 
@@ -19,6 +19,17 @@
     (display-with-foreground 'light-green (make-string bar-A #\~))
     (display-with-foreground 'light-red (make-string (- 100 bar-A bar-B) #\?))    
     (display-with-foreground 'light-cyan (make-string bar-B #\~))
+    (display-ln #\])))
+
+(define (simple-progress-bar name i N)
+  (for-all (lambda (n)
+             (newline))
+           (iota 40))
+  (let ((progress (round (/ (* 100 i) N))))
+    (display-with-foreground 'light-cyan name)
+    (display #\[)
+    (display-with-foreground 'light-green (make-string progress #\~))
+    (display-with-foreground 'light-red (make-string (- 100 progress) #\.))    
     (display-ln #\])))
 
 ;;; render board for terminal
@@ -64,4 +75,3 @@
            (read))))
       ((won)
        (format #t "Game over! ~a ~a~%" (crib-scoreB state) (crib-scoreA state))))))
-

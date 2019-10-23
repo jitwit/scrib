@@ -1,5 +1,5 @@
 (define maggie-iterations
-  (make-parameter 30))
+  (make-parameter 24))
 
 ;;; remember discards
 (define (make-crib-maggie)
@@ -30,7 +30,7 @@
         ((= i trials)
          (let ((peg-frequencies (vector->list (hashtable-cells pegs))))
            (cadr (maximum-on peg-frequencies cdr))))
-      (let ((result (maggie-max (peg->crib state discards))))
+      (let ((result (maggie-max (peg->crib* state discards))))
         (hashtable-update! pegs (cdr result) fx1+ 0)))))
 
 (define (maggie-max state)

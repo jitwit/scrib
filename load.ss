@@ -19,9 +19,13 @@
     "records.ss"
     "game.ss"
     "cribbage.ss"
+    "visuals.ss"
     "tables.ss"
     "strategy.ss"
-    "visuals.ss"))
+    ))
+
+(define table-cutoff
+  (make-parameter 100000))
 
 (define verbose-cribbage
   (make-parameter #f))
@@ -31,9 +35,9 @@
             (load (format "cribbers/~a.ss" agent)))
           agents)
 
-(define (v:fxsum V)
+(define (v:sum V)
   (do ((i (fx1- (vector-length V)) (fx1- i))
-       (sum 0 (fx+ sum (vector-ref V i))))
+       (sum 0 (+ sum (vector-ref V i))))
       ((fx< i 0) sum)))
 
 (define (state->dealer? state)

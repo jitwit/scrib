@@ -178,27 +178,25 @@
   (build-table table)
   (with-input-from-file (cribbage-table-location table) read))
 
-(define *table-cutoff* 50000)
-
 (define hand-table-deal-maximize-points
   (make-cribbage-table "calculations/deal-maximize-points.ss"
                        (lambda ()
-                         (build-card-frequency-table deal-maximize-points *table-cutoff*))))
+                         (build-card-frequency-table deal-maximize-points (table-cutoff)))))
 
 (define occurrence-table-deal-maximize-points
   (make-cribbage-table "calculations/pairs-deal-maximize-points.ss"
                        (lambda ()
-                         (build-card-occurrence-table deal-maximize-points *table-cutoff*))))
+                         (build-card-occurrence-table deal-maximize-points (table-cutoff)))))
 
 (define hand-table-pone-maximize-points
   (make-cribbage-table "calculations/pone-maximize-points.ss"
                        (lambda ()
-                         (build-card-frequency-table pone-maximize-points *table-cutoff*))))
+                         (build-card-frequency-table pone-maximize-points (table-cutoff)))))
 
 (define occurrence-table-pone-maximize-points
   (make-cribbage-table "calculations/pairs-pone-maximize-points.ss"
                        (lambda ()
-                         (build-card-occurrence-table pone-maximize-points *table-cutoff*))))
+                         (build-card-occurrence-table pone-maximize-points (table-cutoff)))))
 
 (define cached-cribbage-tables
   (list hand-table-deal-maximize-points
@@ -207,7 +205,7 @@
         occurrence-table-pone-maximize-points))
 
 (define (build-all-tables)
-  (format #t "Doing ~a iterations per table~%" *table-cutoff*)
+  (format #t "Doing ~a iterations per table~%" (table-cutoff))
   (for-all (lambda (table)
              (time (forced-build-table table)))
            cached-cribbage-tables))
@@ -219,6 +217,7 @@
         ((= i trials) table)
       (let ((hand (list-head (deck) 6)))
         (for-all (lambda (xy)
+                   (simple-progress-bar (format "~a ~a/~a~%" 'Pairs i trials) i trials)
                    (let-values (((x y) (apply values (map rank xy))))
                      (cond ((= x y)
                             (update-2d-entry table x y 1+))
@@ -231,6 +230,7 @@
   (let ((counts (make-vector 13)))
     (do ((i 0 (fx1+ i)))
         ((= i trials) counts)
+      (simple-progress-bar (format "~a ~a/~a~%" 'Frequencies i trials) i trials)
       (let ((hand (list-head (deck) 6)))
         (for-all (lambda (card)
                    (vector-inc! counts (rank card)))

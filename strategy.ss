@@ -4,17 +4,17 @@
 ;;; Heuristics
 (define (deal-maximize-points-heuristic deck hand)
   (lambda (h)
-    (+ (/ (v:fxsum (vector-map (lambda (c)
-                                 (score-deal (cons c h)))
-                               deck))
+    (+ (/ (v:sum (vector-map (lambda (c)
+                               (score-deal (cons c h)))
+                             deck))
           (vector-length deck))
        (deal-discard (discard h hand)))))
 
 (define (pone-maximize-points-heuristic deck hand)
   (lambda (h)
-    (- (/ (v:fxsum (vector-map (lambda (c)
-                                 (score-pone (cons c h)))
-                               deck))
+    (- (/ (v:sum (vector-map (lambda (c)
+                               (score-pone (cons c h)))
+                             deck))
           (vector-length deck))
        (pone-discard (discard h hand)))))
 
@@ -121,6 +121,37 @@
                  (state-peg-board state)
                  (board-view->cribbage board-cards)))))
 
+(define (peg->crib* state discards)
+  (let ((board-cards (state-peg-board* state))
+        (dealer (if (state-peg-dealer? state) 'A 'B))
+        (last-peg (last-peg-view->cribbage (state-peg-last-peg state))))
+    (let* ((opponent-cards (board-view->opponent-cards board-cards))
+           (remaining (- 4 (length opponent-cards)))
+           (known-cards `(,(state-peg-cut state)
+                          ,@(state-peg-hand state)
+                          ,@discards
+                          ,@(map car board-cards)))
+           (deal (if (state-peg-dealer? state)
+                     (deal-from-frequencies known-cards
+                                            (+ 4 remaining)
+                                            (fetch-table hand-table-pone-maximize-points))
+                     (deal-from-frequencies known-cards
+                                            (+ 4 remaining)
+                                            (fetch-table hand-table-deal-maximize-points))))
+           (assumed-hand (list-head deal remaining))
+           (random-crib (list-tail deal remaining)))
+      (make-crib dealer
+                 'A
+                 (state-peg-scoreA state)
+                 (state-peg-scoreB state)
+                 (state-peg-hand state)
+                 assumed-hand
+                 random-crib
+                 (state-peg-cut state)
+                 last-peg
+                 (state-peg-board state)
+                 (board-view->cribbage board-cards)))))
+
 (define (board-view->cribbage board-cards)
   (map (lambda (c.id)
          (cons (car c.id)
@@ -141,4 +172,24 @@
                      (car c.id)))
               board-cards))
 
+(define (random-weighted-by-table frequencies)
+  (let ((N (* (v:sum frequencies) (random 1.)))
+        (n (vector-length frequencies)))
+    (do ((i 0 (1+ i))
+         (x N (- x (vector-ref frequencies i))))
+        ((< x 0) (1- i)))))
 
+(define (update-frequency V V0 j)
+  (vector-modify! V j (lambda (freq)
+                        (- freq
+                           (/ (vector-ref V0 j)
+                              4)))))
+
+(define (deal-from-frequencies cards k frequencies)
+  (let ((initial (vector-copy frequencies))
+        (deal '()))
+    (do ((k k (1- k)))
+        ((zero? k) deal)
+      (let ((j (random-weighted-by-table frequencies)))
+        (push! j deal)
+        (update-frequency frequencies initial j)))))
