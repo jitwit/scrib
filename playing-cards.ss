@@ -69,10 +69,10 @@
 
 (define suit-colors
   ;; looks ok on emacs geiser, which doesn't display colors correctly
-  '((clubs . yellow)
-    (diamonds . pink)
-    (hearts . red)
-    (spades . green)))
+  '((clubs . light-green)
+    (diamonds . light-red)
+    (hearts . magenta)
+    (spades . cyan)))
 
 (define (display-card card)
   (let ((desc (card->description card)))
@@ -84,6 +84,16 @@
                          0)))
            ((ten? card) 'T)
            (else (car desc))))))
+
+(define (display-suit card)
+  (let ((desc (card->description card)))
+    (display-with-foreground
+     (cdr (assoc (cadr desc) suit-colors))
+     (case (cadr desc)
+       ((clubs) (unicode->symbol "2663"))
+       ((diamonds) (unicode->symbol "2666"))
+       ((hearts) (unicode->symbol "2665"))
+       ((spades) (unicode->symbol "2660"))))))
 
 (define (display-hand hand)
   (unless (null? hand)
@@ -118,3 +128,34 @@
   (list-head (shuffle (deck-without known-cards))
              size))
 
+;;; box is a list of things to display row by row.
+;;; each box
+
+(define (huge-card card)
+  `("       "
+    " +---+ "
+    ,(with-output-to-string
+      (lambda ()
+        (display " |")
+        (display-card card)
+        (display "  | ")))
+    ,(with-output-to-string
+      (lambda ()
+        (display " | ")
+        (display-suit card)
+        (display " | ")))
+    ,(with-output-to-string
+      (lambda ()
+        (display " |  ")
+        (display-card card)
+        (display "| ")))
+    " +---+ "
+    "       "))
+
+(define (display-huge-hand hand)
+  (if (null? hand)
+      (newline)
+      (for-all (lambda (fragments)
+                 (for-all display fragments)
+                 (newline))
+               (apply map list (map huge-card hand)))))

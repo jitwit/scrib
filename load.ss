@@ -1,4 +1,6 @@
-(import (euler))
+(import (euler)
+        (charset)
+        (brzozowski))
 
 (print-gensym #f)
 
@@ -79,3 +81,40 @@
   (let ((C1 (run-cribbage C0 (random-element (cribbage-actions C0)))))
     (run-cribbage C1 (random-element (cribbage-actions C1)))))
 
+(define (read-input)
+  (let loop ((next (read)) (objects '()))
+    (if (eof-object? next)
+        (reverse objects)
+        (loop (read) (cons next objects)))))
+
+(define (read-game-log file)
+  (with-input-from-file file read-input))
+
+(define (random-game)
+  (read-game-log
+   (string-append "games/" (random-element (directory-list "games")))))
+
+(define (display-cribbage-state player state)
+  (let ((status (case (crib-dealer state)
+                  ((A) 'pone)
+                  ((B) 'deal))))
+    (for-all (lambda (n) (newline)) (iota 30))
+    (format #t "~a~%~a ~a~%" status (crib-scoreB state) (crib-scoreA state))
+    (case (game-phase state)
+      ((discard)
+       (display-huge-hand (crib-handB state)))
+      ((peg)
+       (display-huge-hand (list (crib-cut state)))
+       (display-huge-hand (crib-board state))
+       (display-huge-hand (crib-handB state)))
+      ((count)
+       (cond ((eq? player (crib-dealer state))
+              (for-all display-huge-hand
+                       (list (crib-handA state)
+                             (crib-handB state)
+                             (crib-crib state))))
+             (else
+              (for-all display-huge-hand
+                       (list (crib-handB state)
+                             (crib-handA state)
+                             (crib-crib state)))))))))

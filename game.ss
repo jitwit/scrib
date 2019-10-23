@@ -86,20 +86,8 @@
       (redeal-crib
        (cond
         ((eq? 'A (crib-dealer crib))
-         (when (verbose-cribbage)
-           (display "cut: ") (display-card cut) (newline)
-           (display-hand-report-score handB scoreB)
-           (display-hand-report-score handA scoreA)
-           (display-hand-report-score (crib-crib crib) scoreC)
-           (sleep (make-time 'time-duration 0 2)))
          (update-score (update-score (update-score crib 'B scoreB) 'A scoreA) 'A scoreC))
         (else
-         (when (verbose-cribbage)
-           (display "cut: ") (display-card cut) (newline)
-           (display-hand-report-score handA scoreA)
-           (display-hand-report-score handB scoreB)
-           (display-hand-report-score (crib-crib crib) scoreC)
-           (sleep (make-time 'time-duration 0 2)))
          (update-score
           (update-score
            (update-score crib 'A scoreA) 'B scoreB) 'B scoreC)))))))
@@ -175,15 +163,11 @@
                     ((discard)
                      (let ((move ((if (eq? (crib-turn state) 'A) agentA agentB)
                                   (crib->discard state))))
-                       (unless (valid-discard? state (crib-turn state) move)
-                         (error 'cribbage "bad discard" state move))
                        (set! state (run-discard state move))
                        'done))
                     ((peg)
                      (let ((move ((if (eq? (crib-turn state) 'A) agentA agentB)
                                   (crib->peg state))))
-                       (unless (valid-peg? state (crib-turn state) move)
-                         (error 'cribbage "bad peg" state move))
                        (set! state (execute-peg state move))
                        'done))
                     ((count) (set! state (execute-count state)) 'done)
@@ -197,8 +181,12 @@
 
 (define (run-cribbage-game agent)
   (parameterize ((verbose-cribbage #t))
-    (let ((game (make-cribbage agent crib-terminus)))
-      (let loop ((result (game 'run)))
+    (let ((game (make-cribbage (cribbot-strategy agent) crib-terminus)))
+      (let loop ((result (begin
+                           (display-cribbage-state 'B (game 'god-mode))
+                           (game 'run))))
+
+        (display-cribbage-state 'B (game 'god-mode))
         (case result
           ((done) (loop (game 'run))) ;; note: done indicates game stepped without error 
           (else result))))))
@@ -241,6 +229,4 @@
   (if (eq? who 'A)
       (crib-handA crib)
       (crib-handB crib)))
-
-
 
