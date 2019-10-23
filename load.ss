@@ -20,7 +20,8 @@
     "game.ss"
     "cribbage.ss"
     "tables.ss"
-    "strategy.ss"))
+    "strategy.ss"
+    "visuals.ss"))
 
 (define verbose-cribbage
   (make-parameter #f))
@@ -45,33 +46,6 @@
              'dealer
              'pone))))
 
-(define (display-discard state)
-  (format #t
-          "status: ~a~%scores: ~a ~a~%"
-          (state->dealer? state)
-          (state-discard-scoreA state)
-          (state-discard-scoreB state))
-  (display-hand (state-discard-hand state)) (newline))
-
-(define (display-peg state)
-  (format #t
-          "status: ~a~%scores: ~a ~a~%"
-          (state->dealer? state)
-          (state-peg-scoreA state)
-          (state-peg-scoreB state))
-  (display "cut:   ")
-  (display-card (state-peg-cut state)) (newline)
-  (display "hand:  ")
-  (display-hand (state-peg-hand state)) (newline)
-  (display "board: ")
-  (display-hand* (state-peg-board state)) (newline) (newline)
-  (display "valid-pegs: ")
-  (display-hand* (valid-pegs (state-peg-board state) (state-peg-hand state))) (newline))
-
-(define (display-hand-report-score hand score)
-  (display-hand hand)
-  (format #t " got ~a~%" score))
-
 (define (random-element X)
   (list-ref X (random (length X))))
 
@@ -91,34 +65,14 @@
 (define (read-game-log file)
   (with-input-from-file file read-input))
 
-(define (random-game)
-  (read-game-log
-   (string-append "games/" (random-element (directory-list "games")))))
+(define (saved-games-list)
+  (map (lambda (game)
+         (string-append "games/" game))
+       (directory-list "games")))
 
-(define (display-cribbage-state player state)
-  (let ((status (case (crib-dealer state)
-                  ((A) 'pone)
-                  ((B) 'deal))))
-    (for-all (lambda (n) (newline)) (iota 30))
-    (format #t "~a~%~a ~a~%" status (crib-scoreB state) (crib-scoreA state))
-    (case (game-phase state)
-      ((discard)
-       (display-huge-hand (crib-handB state)))
-      ((peg)
-       (display-huge-hand (list (crib-cut state)))
-       (display-huge-hand (crib-board state))
-       (display-huge-hand (crib-handB state)))
-      ((count)
-       (cond ((eq? player (crib-dealer state))
-              (for-all display-huge-hand
-                       (list (crib-handA state)
-                             (crib-handB state)
-                             (crib-crib state))))
-             (else
-              (for-all display-huge-hand
-                       (list (crib-handB state)
-                             (crib-handA state)
-                             (crib-crib state)))))))))
+(define (random-game)
+  (read-game-log (random-element (saved-games-list))))
+
 (random-seed
  (time-nanosecond
   (current-time)))

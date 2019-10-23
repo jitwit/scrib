@@ -1,6 +1,6 @@
 
 (define monte-iterations
-  (make-parameter 3))
+  (make-parameter 12))
 
 ;; given peg view, dumbly reconstruct a random state
 (define (make-crib-monte)

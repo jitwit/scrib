@@ -39,3 +39,6 @@
           (or (valid-peg-selection? cards choice)
               (loop (read)))))))
 
+(define Jitwit
+  (make-cribbot 'Jitwit crib-terminus))
+

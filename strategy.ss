@@ -84,8 +84,8 @@
       (for-each (lambda (result)
                   (let ((keeps (cdr result))
                         (cribs (discard (cdr result) hand)))
-                    (display-hand keeps) (newline)
-                    (display-hand cribs) (newline)
+                    (display-huge-hand keeps)
+                    (display-huge-hand cribs)
                     (format #t "H: ~,2f~%~%"
                             (car result))))
                 (list-head results n)))))

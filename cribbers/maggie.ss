@@ -1,6 +1,6 @@
 
 (define maggie-iterations
-  (make-parameter 100))
+  (make-parameter 12))
 
 ;;; remember discards
 (define (make-crib-maggie)
@@ -41,8 +41,9 @@
         ((= i trials)
          ;;
          ;;         (display-ln (hashtable-cells pegs))
-         (cadr (maximum-on (vector->list (hashtable-cells pegs)) cdr))
-         ;;         (random-element-weighted (vector->list (hashtable-cells pegs)) trials)
+         ;;         (cadr (maximum-on (vector->list (hashtable-cells pegs)) cdr))
+         ;;
+         (random-element-weighted (vector->list (hashtable-cells pegs)) trials)
          )
       (let ((result (maggie-max (peg->crib state discards))))
         ;; start with maximin because we know it's our turn when this is called

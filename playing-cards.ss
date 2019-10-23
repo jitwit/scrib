@@ -132,8 +132,7 @@
 ;;; each box
 
 (define (huge-card card)
-  `("       "
-    " +---+ "
+  `(" +---+ "
     ,(with-output-to-string
       (lambda ()
         (display " |")
@@ -149,8 +148,7 @@
         (display " |  ")
         (display-card card)
         (display "| ")))
-    " +---+ "
-    "       "))
+    " +---+ "))
 
 (define (display-huge-hand hand)
   (if (null? hand)

@@ -40,7 +40,3 @@
     (display object)
     (clear-term-code)))
 
-
-
-
-
