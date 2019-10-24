@@ -82,35 +82,27 @@
         (/ (- x lo)
            (- hi lo)))))
 
-(define example-table
-  (let* ((M (fetch-table occurrence-table-deal-maximize-points))
-         (alpha (v:fold M
-                        +inf.0
-                        (lambda (x row)
-                          (v:fold row x min))))
-         (beta (v:fold M
-                       -inf.0
-                       (lambda (x row)
-                         (v:fold row x max))))
-         (delta (- beta alpha)))
-    `(table (caption "A Table")
-            (tr (th "")
-                ,@(map (lambda (n)
-                         `(th ,(show-card n)))
-                       (iota 13)))
-            ,@(map (lambda (j)
-                     `(tr (td ,(show-card j))
-                          ,@(map (lambda (k)
-                                   `(td (@ (bgcolor ,(format "background-color:hsl(213,100%,~a%);"
-                                                             (inexact->exact (floor (lerp alpha beta 90 50 (get-2d-entry M j k)))))))
-                                        ,(number->string (get-2d-entry M j k))))
-                                 (iota 13))))
-                   (iota 13)))))
-
-(define (render-example)
-  (let ((deal-eg "deal.html"))
-    (delete-file deal-eg)
-    (with-output-to-file deal-eg
+(define (render-table file)
+  (let ((target (string-append file ".html")))
+    (delete-file target)
+    (with-output-to-file target
       (lambda ()
-        (send-reply (sxml->html example-table))))
-    (system "open deal.html")))
+        (send-reply (sxml->html
+                     (matrix->sxml (with-input-from-file file read)
+                                   (lambda (x)
+                                     (format "~,2f" x)))))))
+    (system (format "open ~a" target))))
+
+(define (matrix->sxml M render)
+  `(table (caption "Matrix")
+          (tr (td "-/-")
+              ,@(map (lambda (j)
+                       `(td ,(number->string j)))
+                     (iota (col-dim M))))
+          ,@(map (lambda (i row)
+                   `(tr (td ,(number->string i))
+                        ,@(map (lambda (x)
+                                 `(td ,(render x)))
+                               (vector->list row))))
+                 (iota (row-dim M))
+                 (vector->list M))))

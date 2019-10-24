@@ -86,6 +86,13 @@
 (define (random-game)
   (read-game-log (random-element (saved-games-list))))
 
+(define (save-thing-to-file thing file)
+  (parameterize ((print-gensym #t))
+    (delete-file file)
+    (with-output-to-file file
+      (lambda ()
+        (display thing)))))
+
 (random-seed
  (time-nanosecond
   (current-time)))

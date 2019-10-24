@@ -40,6 +40,19 @@
            (set! winner (winning-player state))))))
     (cons winner positions)))
 
+(define (record-trace dealer-table dealer-total pone-table pone-total trace)
+  (let ((winner (car trace)))
+    (for-all (lambda (dw x y) ;; change in wins from dealer perspective
+               (matrix-update! dealer-total x y 1+)
+               (matrix-update! pone-total y x 1+)
+               (matrix-update! dealer-table x y (lambda (x) (+ x dw)))
+               (matrix-update! pone-table y x (lambda (x) (- x dw))))
+             (map (lambda (position)
+                    (if (eq? winner (car position)) 1 -1))
+                  (cdr trace))
+             (map cadr (cdr trace))
+             (map caddr (cdr trace)))))
+
 (define (bootstrap-win-table alice bob iterations)
   (let ((dealer-table (matrix 122 122))
         (dealer-total (matrix 122 122))
@@ -47,30 +60,38 @@
         (pone-total (matrix 122 122)))
     (do ((k 0 (1+ k)))
         ((= k iterations)
-         (delete-file "calculations/results")
-         (with-output-to-file "calculations/results"
-           (lambda ()
-             (for-each display-ln
-                       (list dealer-table
-                             dealer-total
-                             pone-table
-                             pone-total)))))
-      (let* ((trace (trace-game (deal-crib 0 0 (random-dealer))
-                                alice
-                                bob))
-             (winner (car trace)))
-        (for-all (lambda (dw x y) ;; change in wins from dealer perspective
-                   (let ((a (min x y))
-                         (b (max x y)))
-                     (matrix-update! dealer-total a b 1+)
-                     (matrix-update! pone-total a b 1+)
-                     (matrix-update! dealer-table a b (lambda (x) (+ x dw)))
-                     (matrix-update! pone-table a b (lambda (x) (- x dw)))))
-                 (map (lambda (position)
-                        (if (eq? winner (car position)) 1 -1))
-                      (cdr trace))
-                 (map cadr (cdr trace))
-                 (map caddr (cdr trace)))))))
+         (matrix-tabulate dealer-table
+                          (lambda (i j)
+                            (cond ((= i 121) 1)
+                                  ((= j 121) -1)
+                                  (else (/ (matrix-ref dealer-table i j)
+                                           (matrix-ref dealer-total i j))))))
+         (matrix-tabulate pone-table
+                          (lambda (i j)
+                            (cond ((= i 121) 1)
+                                  ((= j 121) -1)
+                                  (else (/ (matrix-ref pone-table i j)
+                                           (matrix-ref pone-total i j))))))
+         (for-each save-thing-to-file
+                   (list dealer-table
+                         dealer-total
+                         pone-table
+                         pone-total)
+                   '("calculations/dealer-table"
+                     "calculations/dealer-total"
+                     "calculations/pone-table"
+                     "calculations/pone-total")))
+      (format #t "iteration ~a~%" k)
+      (do ((i 0 (1+ i)))
+          ((= i 121))
+        (simple-progress-bar 'Bootstrapping i 121)
+        (do ((j 0 (1+ j)))
+            ((= j 121))
+          (record-trace dealer-table
+                        dealer-total
+                        pone-table
+                        pone-total
+                        (trace-game (deal-crib i j 'A) alice bob)))))))
 
 (define (run-agents state A B)
   (let* ((now (current-time))
