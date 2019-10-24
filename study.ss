@@ -34,14 +34,15 @@
         'B)))
 
 (define (delete-unfinished-games)
-  (for-all delete-file
-           (filter (lambda (game)
-                     (let* ((log (with-input-from-file game
-                                   read-input))
-                            (result (car (last-pair log))))
-                       (not (or (= 121 (lookup 'scoreA result))
-                                (= 121 (lookup 'scoreB result))))))
-                   (saved-games-list))))
+  (for-all (lambda (game)
+             (let* ((log (with-input-from-file game
+                           read-input))
+                    (result (car (last-pair log))))
+               (unless (or (= 121 (lookup 'scoreA result))
+                           (= 121 (lookup 'scoreB result)))
+                 (format #t "deleting ~a~%" game)
+                 (delete-file game))))
+           (saved-games-list)))
 
 (define (cribbot-result cribbot game)
   (let ((id (cribbot-symbol cribbot game))
@@ -75,3 +76,16 @@
 
 (define (display-win-rate cribbot)
   (format #t "~,2f%~%" (* 100 (win-rate cribbot))))
+
+(define (study-game-positions game)
+  (let ((result (with-input-from-file game read-input)))
+    (let loop ((result result) (scores '()))
+      (if (null? result)
+          scores
+          (loop (cdr result)
+                `(,(cons (lookup 'scoreA (car result))
+                         (lookup 'scoreB (car result)))
+                  ,@scores))))))
+
+(define (saved-scores)
+  (map (compose car study-game-positions) (saved-games-list)))

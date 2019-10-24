@@ -1,6 +1,8 @@
 (import (euler)
         (charset)
-        (brzozowski))
+        (brzozowski)
+        (chez vector)
+        (sxml-mini))
 
 (print-gensym #f)
 
@@ -19,10 +21,12 @@
     "records.ss"
     "game.ss"
     "cribbage.ss"
-    "visuals.ss"
-    "tables.ss"
     "study.ss"
-    "strategy.ss"))
+    "strategy.ss"
+    "tables.ss"
+    "visuals.ss"
+    
+    ))
 
 (define table-cutoff
   (make-parameter 100000))

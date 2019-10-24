@@ -75,3 +75,42 @@
            (read))))
       ((won)
        (format #t "Game over! ~a ~a~%" (crib-scoreB state) (crib-scoreA state))))))
+
+(define (lerp lo hi vlo vhi x)
+  (+ vlo
+     (* (- vhi vlo)
+        (/ (- x lo)
+           (- hi lo)))))
+
+(define example-table
+  (let* ((M (fetch-table occurrence-table-deal-maximize-points))
+         (alpha (v:fold M
+                        +inf.0
+                        (lambda (x row)
+                          (v:fold row x min))))
+         (beta (v:fold M
+                       -inf.0
+                       (lambda (x row)
+                         (v:fold row x max))))
+         (delta (- beta alpha)))
+    `(table (caption "A Table")
+            (tr (th "")
+                ,@(map (lambda (n)
+                         `(th ,(show-card n)))
+                       (iota 13)))
+            ,@(map (lambda (j)
+                     `(tr (td ,(show-card j))
+                          ,@(map (lambda (k)
+                                   `(td (@ (bgcolor ,(format "background-color:hsl(213,100%,~a%);"
+                                                             (inexact->exact (floor (lerp alpha beta 90 50 (get-2d-entry M j k)))))))
+                                        ,(number->string (get-2d-entry M j k))))
+                                 (iota 13))))
+                   (iota 13)))))
+
+(define (render-example)
+  (let ((deal-eg "deal.html"))
+    (delete-file deal-eg)
+    (with-output-to-file deal-eg
+      (lambda ()
+        (send-reply (sxml->html example-table))))
+    (system "open deal.html")))

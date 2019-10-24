@@ -85,6 +85,25 @@
            ((ten? card) 'T)
            (else (car desc))))))
 
+(define (show-card card)
+  (let ((desc (card->description card)))
+    (cond ((symbol? (car desc))
+           (string-upcase
+            (substring (symbol->string (car desc))
+                       0 1)))
+          ((ten? card) "T")
+          (else (number->string (car desc))))))
+
+(define (char->rank char)
+  (let ((table '((#\t . 9)
+                 (#\j . 10)
+                 (#\q . 11)
+                 (#\k . 12)
+                 (#\a . 0))))
+    (cond ((assoc char table)
+           => cdr)
+          (else (char- char #\1)))))
+
 (define (display-suit card)
   (let ((desc (card->description card)))
     (display-with-foreground
