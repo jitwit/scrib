@@ -4,6 +4,74 @@
 ;;; Run moves
 ;;; Game Phase predicates
 
+(define (current-score state)
+  (list (crib-dealer state)
+        (crib-scoreA state)
+        (crib-scoreB state)))
+
+(define (winning-player state)
+  (let ((score (current-score state)))
+    (cond ((= 121 (list-ref score 1)) 'A)
+          ((= 121 (list-ref score 2)) 'B)
+          (else #f))))
+
+(define (trace-game state A B)
+  (let ((agent-A (cribbot-strategy A))
+        (agent-B (cribbot-strategy B))
+        (positions (list (current-score state))))
+    (let loop ((state state))
+      (let ((turn (crib-turn state)))
+        (case (game-phase state)
+          ((discard)
+           (let ((score (current-score state)))
+             (unless (equal? (car positions) score)
+               (push! score positions)))
+           (if (eq? turn 'A)
+               (loop (run-cribbage state (agent-A (crib->discard state))))
+               (loop (run-cribbage state (agent-B (crib->discard state))))))
+          ((peg)
+           (if (eq? turn 'A)
+               (loop (run-cribbage state (agent-A (crib->peg state))))
+               (loop (run-cribbage state (agent-B (crib->peg state))))))
+          ((count) (loop (execute-count state)))
+          ((won)
+           ;; not sure if we want to include this or not. 
+           ;;           (push! (current-score state) positions)
+           (set! winner (winning-player state))))))
+    (cons winner positions)))
+
+(define (bootstrap-win-table alice bob iterations)
+  (let ((dealer-table (matrix 122 122))
+        (dealer-total (matrix 122 122))
+        (pone-table (matrix 122 122))
+        (pone-total (matrix 122 122)))
+    (do ((k 0 (1+ k)))
+        ((= k iterations)
+         (delete-file "calculations/results")
+         (with-output-to-file "calculations/results"
+           (lambda ()
+             (for-each display-ln
+                       (list dealer-table
+                             dealer-total
+                             pone-table
+                             pone-total)))))
+      (let* ((trace (trace-game (deal-crib 0 0 (random-dealer))
+                                alice
+                                bob))
+             (winner (car trace)))
+        (for-all (lambda (dw x y) ;; change in wins from dealer perspective
+                   (let ((a (min x y))
+                         (b (max x y)))
+                     (matrix-update! dealer-total a b 1+)
+                     (matrix-update! pone-total a b 1+)
+                     (matrix-update! dealer-table a b (lambda (x) (+ x dw)))
+                     (matrix-update! pone-table a b (lambda (x) (- x dw)))))
+                 (map (lambda (position)
+                        (if (eq? winner (car position)) 1 -1))
+                      (cdr trace))
+                 (map cadr (cdr trace))
+                 (map caddr (cdr trace)))))))
+
 (define (run-agents state A B)
   (let* ((now (current-time))
          (end #f)

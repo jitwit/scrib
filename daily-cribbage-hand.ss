@@ -79,7 +79,7 @@
                                              (string-length c))))
                     (show-matches re:card puzzle)))
          (score-string (car (show-matches re:score puzzle)))
-         (scores (map string->number (show-matches re:number score-string))))
+         (scores (reverse (map string->number (show-matches re:number score-string)))))
     ;;; * indicates dealer, our score is listed first. We match the &, 
     ;;; so - 2 for index
     (make-state-discard (not (char=? #\*
@@ -90,10 +90,28 @@
                         (list-ref scores 1)
                         hand)))
 
+
 (define (main)
   (fetch-daily-hand)
-  (let ((cards (map parse-card (read-cards))))
+  (let* ((situation (read-puzzle))
+         (cards (state-discard-hand situation)))
+    (cond ((state-discard-dealer? situation)
+           (display-discard-strategy deal-maximize-points-heuristic cards (display-length))
+           (newline) (newline)
+           (display-discard-strategy deal-maximize-crib-heuristic cards (display-length))
+           (newline) (newline))
+          (else
+           (display-discard-strategy pone-maximize-points-heuristic cards (display-length))
+           (newline) (newline)
+           (display-discard-strategy pone-minimize-crib-heuristic cards (display-length))
+           (newline) (newline)))))
+
+(define (main*)
+  (fetch-daily-hand)
+  (let ((situation (map parse-card (read-cards))))
     (display-discard-strategy deal-maximize-points-heuristic cards (display-length))
+    (newline) (newline)
+    (display-discard-strategy deal-maximize-crib-heuristic  cards (display-length))
     (newline) (newline)
     (display-discard-strategy pone-maximize-points-heuristic cards (display-length))
     (newline) (newline)

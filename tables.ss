@@ -140,6 +140,63 @@
         ((= i y) table)
       (vector-set! table i (make-vector y)))))
 
+(define (matrix x y)
+  (let ((M (make-vector x)))
+    (do ((i 0 (1+ i)))
+        ((= i x) M)
+      (vector-set! M i (make-vector y)))))
+
+(define (matrix-ref M i j)
+  (vector-ref (vector-ref M i) j))
+
+(define (matrix-set! M i j x)
+  (vector-set! (vector-ref M i) j x))
+
+(define (matrix-update! M i j f)
+  (matrix-set! M i j (f (matrix-ref M i j))))
+
+(define (matrix-row M i)
+  (vector-ref M i))
+
+(define (row-dim M)
+  (vector-length M))
+
+(define (col-dim M)
+  (vector-length (matrix-row M 0)))
+
+(define (matrix-tabulate M f)
+  (let ((n (row-dim M))
+        (m (col-dim M)))
+    (do ((i 0 (1+ i)))
+        ((= i n))
+      (let ((row-i (matrix-row M i)))
+        (do ((j 0 (1+ j)))
+            ((= j m))
+          (vector-set! row-i j (f i j)))))))
+
+(define (matrix-transform! M f)
+  (let ((n (row-dim M))
+        (m (col-dim M)))
+    (do ((i 0 (1+ i)))
+        ((= i n))
+      (let ((row-i (matrix-row M i)))
+        (do ((j 0 (1+ j)))
+            ((= j m))
+          (let ((M-ij (vector-ref row-i j)))
+            (vector-set! row-i j (f M-ij))))))))
+
+(define (matrix-transform M f)
+  (let ((N (matrix (row-dim M) (col-dim M))))
+    (matrix-tabulate N (lambda (i j)
+                         (f (matrix-ref M i j))))
+    N))
+
+(define (matrix-transpose M)
+  (let ((N (matrix (col-dim M) (row-dim M))))
+    (matrix-tabulate N (lambda (i j)
+                         (matrix-ref M j i)))
+    N))
+
 (define (get-2d-entry table x y)
   (vector-ref (vector-ref table x) y))
 
