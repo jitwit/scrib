@@ -29,7 +29,7 @@
     (display-with-foreground 'light-cyan name) (newline)
     (display #\[)
     (display-with-foreground 'light-green (make-string progress #\~))
-    (display-with-foreground 'light-red (make-string (- 100 progress) #\.))    
+    (display-with-foreground 'light-red (make-string (- 100 progress) #\.))
     (display-ln #\])))
 
 ;;; render board for terminal
@@ -86,7 +86,8 @@
   (format "background-color: hsl(~a,~a%,~a%);"
           (if (<= 1/2 P) 136 0)
           100
-          (flonum->fixnum (+ 50.0 (floor (* 50 (- 1/2 (abs (- P 1/2)))))))))
+          ;;          (flonum->fixnum (+ 50.0 (floor (* 100 (abs (- P 1/2))))))
+          (flonum->fixnum (+ 0.0 (floor (* 100.0 (- 1/2 (abs (- P 1/2)))))))))
 
 (define (render-table file)
   (let ((target (string-append file ".html")))

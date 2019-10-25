@@ -1,6 +1,12 @@
 (define maggie-iterations
   (make-parameter 8))
 
+(define maggie-deal-table
+  (fetch-table deal-position-table))
+
+(define maggie-pone-table
+  (fetch-table pone-position-table))
+
 ;;; remember discards
 (define (make-crib-maggie)
   (let ((discards '()))
@@ -37,18 +43,18 @@
   (maximum-on (cribbage-actions state)
               (lambda (action)
                 (let ((result.action
-                       (monte-search action (run-cribbage state action))))
+                       (maggie-search action (run-cribbage state action))))
                   (car result.action)))))
 
 (define (maggie-min state)
   (let ((result (maximum-on (cribbage-actions state)
                             (lambda (action)
                               (let ((result.action
-                                     (monte-search action (run-cribbage state action))))
+                                     (maggie-search action (run-cribbage state action))))
                                 (- (car result.action)))))))
     (cons (- (car result)) (cdr result))))
 
-(define (monte-search action guess)
+(define (maggie-search action guess)
   (case (game-phase guess)
     ((peg)
      (if (eq? 'A (crib-turn guess))

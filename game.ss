@@ -195,3 +195,42 @@
            (set! end state)))))
     (close-output-port out)
     end))
+
+;; bob pones, alice deals
+(define (run-single-hand alice bob state)
+  (let ((alice (cribbot-strategy alice))
+        (bob (cribbot-strategy bob)))
+    (let ((state (run-cribbage state (bob (crib->discard state)))))
+      (let loop ((state (run-cribbage state (alice (crib->discard state)))))
+        ;;        (display-ln state)
+        (case (game-phase state)
+          ((peg)
+           (if (eq? (crib-turn state) (crib-dealer state))
+               (loop (run-cribbage state (alice (crib->peg state))))
+               (loop (run-cribbage state (bob (crib->peg state))))))
+          ((count) (loop (execute-count state)))
+          ((discard won) state))))))
+
+(define (bootstrap-deal-table alice bob N)
+  (let ((T (matrix 122 122)))
+    (do ((k 0 (1+ k)))
+        ((= k 121))
+      (matrix-set! T 121 k 1.0))
+    (do ((k 0 (1+ k)))
+        ((= k 122))
+      (matrix-set! T k 121 0.0))
+    (do ((x 120 (1- x)))
+        ((< x 0)
+         (save-thing-to-file T "calculations/DEAL0"))
+      (simple-progress-bar "Boostrap DAG" (- 120 x) 120)
+      (do ((y 120 (1- y)))
+          ((< y 0))
+        (do ((k 0 (1+ k)))
+            ((= k N))
+          (let ((P-win (apply matrix-ref
+                              T
+                              (cdr (current-score
+                                    (run-single-hand alice
+                                                     bob
+                                                     (deal-crib y x 'A)))))))
+            (matrix-update! T y x (lambda (P-xy) (+ P-xy (/ P-win N))))))))))

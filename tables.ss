@@ -249,16 +249,21 @@
                        (lambda ()
                          (build-card-occurrence-table pone-maximize-points (table-cutoff)))))
 
-(define position-table
-  (make-cribbage-table "calculations/position-table.ss"
-                       (lambda () (build-position-table))))
+(define deal-position-table
+  (make-cribbage-table "calculations/dealer-table"
+                       (lambda () (error 'deal-position-table "build the win tables some other way"))))
+
+(define pone-position-table
+  (make-cribbage-table "calculations/pone-table"
+                       (lambda () (error 'pone-position-table "build the win tables some other way"))))
 
 (define cached-cribbage-tables
   (list hand-table-deal-maximize-points
         occurrence-table-deal-maximize-points
         hand-table-pone-maximize-points
         occurrence-table-pone-maximize-points
-        position-table))
+        deal-position-table
+        pone-position-table))
 
 (define (build-all-tables)
   (format #t "Doing ~a iterations per table~%" (table-cutoff))
