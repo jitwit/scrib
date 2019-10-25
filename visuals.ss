@@ -82,6 +82,12 @@
         (/ (- x lo)
            (- hi lo)))))
 
+(define (colorize-win-probability P)
+  (format "background-color: hsl(~a,~a%,~a%);"
+          (if (<= 1/2 P) 136 0)
+          100
+          (flonum->fixnum (+ 50.0 (floor (* 50 (- 1/2 (abs (- P 1/2)))))))))
+
 (define (render-table file)
   (let ((target (string-append file ".html")))
     (delete-file target)
@@ -91,8 +97,9 @@
                      (matrix->sxml (with-input-from-file file read)
                                    (lambda (x)
                                      (let ((val (format "~,2f" x))
-                                           (clr (if (<= 0 x) "green" "red")))
-                                       `(td (@ (bgcolor ,clr)) ,val))))))))
+                                           (clr (colorize-win-probability x)))
+                                       `(td (@ (style ,clr))
+                                            ,val))))))))
     (system (format "open ~a" target))))
 
 (define (matrix->sxml M render)
