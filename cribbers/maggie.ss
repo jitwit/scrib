@@ -1,11 +1,8 @@
 (define maggie-iterations
   (make-parameter 8))
 
-(define maggie-deal-table
-  (fetch-table deal-position-table))
-
-(define maggie-pone-table
-  (fetch-table pone-position-table))
+(define maggie-win-table
+  (fetch-table win-probability-table))
 
 ;;; remember discards
 (define (make-crib-maggie)
@@ -64,5 +61,5 @@
                    (crib-scoreB guess))
                 action))))
 
-(define Maggie
+(define (Maggie)
   (make-cribbot 'Maggie (make-crib-maggie)))

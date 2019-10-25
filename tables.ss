@@ -249,12 +249,8 @@
                        (lambda ()
                          (build-card-occurrence-table pone-maximize-points (table-cutoff)))))
 
-(define deal-position-table
-  (make-cribbage-table "calculations/dealer-table"
-                       (lambda () (error 'deal-position-table "build the win tables some other way"))))
-
-(define pone-position-table
-  (make-cribbage-table "calculations/pone-table"
+(define win-probability-table
+  (make-cribbage-table "calculations/win-probability-table"
                        (lambda () (error 'pone-position-table "build the win tables some other way"))))
 
 (define cached-cribbage-tables
@@ -262,8 +258,7 @@
         occurrence-table-deal-maximize-points
         hand-table-pone-maximize-points
         occurrence-table-pone-maximize-points
-        deal-position-table
-        pone-position-table))
+        win-probability-table))
 
 (define (build-all-tables)
   (format #t "Doing ~a iterations per table~%" (table-cutoff))
@@ -297,24 +292,3 @@
                    (vector-inc! counts (rank card)))
                  (discard-strategy hand))))))
 
-(define (build-position-table)
-  (let ((counts (build-2d-table 122 122))
-        (wins (build-2d-table 122 122)))
-    (for-all (lambda (game)
-               (let ((positions (study-game-positions game)))
-                 (when (= 121 (caar positions))
-                   (for-all (lambda (p)
-                              (update-2d-entry wins (car p) (cdr p) 1+))
-                            positions))
-                 (for-all (lambda (p)
-                            (update-2d-entry counts (car p) (cdr p) 1+))
-                          positions)))
-             (saved-games-list))
-    (vector-map (lambda (win-row count-row)
-                  (vector-map (lambda (x y)
-                                (/ (exact->inexact x)
-                                   y))
-                              win-row
-                              count-row))
-                wins
-                counts)))

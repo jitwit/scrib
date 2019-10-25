@@ -40,25 +40,17 @@
            (set! winner (winning-player state))))))
     (cons winner positions)))
 
-(define (record-trace dealer-table dealer-total pone-table pone-total trace)
+(define (record-trace M T trace)
   (let ((winner (car trace)))
     (for-all (lambda (dealer x y) ;; change in wins from dealer perspective
-               (cond ((and (eq? dealer 'A) (eq? winner 'A))
-                      (matrix-update! dealer-total x y 1+)
-                      (matrix-update! pone-total y x 1+)
-                      (matrix-update! dealer-table x y 1+))
-                     ((and (eq? dealer 'A) (eq? winner 'B))
-                      (matrix-update! dealer-total x y 1+)
-                      (matrix-update! pone-total y x 1+)
-                      (matrix-update! pone-table y x 1+))
-                     ((and (eq? dealer 'B) (eq? winner 'A))
-                      (matrix-update! dealer-total y x 1+)
-                      (matrix-update! pone-total x y 1+)
-                      (matrix-update! pone-table x y 1+))
-                     (else
-                      (matrix-update! dealer-total y x 1+)
-                      (matrix-update! pone-total x y 1+)
-                      (matrix-update! dealer-table y x 1+))))
+               (let-values (((x y) (if (eq? dealer 'A)
+                                       (values x y)
+                                       (values y x))))
+                 (cond ((eq? dealer winner)
+                        (matrix-update! M x y 1+)
+                        (matrix-update! T x y 1+))
+                       (else
+                        (matrix-update! T x y 1+)))))
              (map car (cdr trace))
              (map cadr (cdr trace))
              (map caddr (cdr trace)))))
@@ -66,54 +58,31 @@
 ;;; iters-all to get whole board lit up, probably want 1 or 2.
 ;;; iterations for starting games form zero
 (define (bootstrap-win-table alice bob iterations-arbitrary iterations-normal-start)
-  (let ((dealer-table (matrix 122 122))
-        (dealer-total (matrix 122 122))
-        (pone-table (matrix 122 122))
-        (pone-total (matrix 122 122)))
+  (let ((M (matrix 122 122))
+        (T (matrix 122 122)))
     (do ((k 0 (1+ k)))
         ((= k iterations-normal-start))
       (simple-progress-bar 'Bootstrapping-Normal k iterations-normal-start)
-      (record-trace dealer-table
-                    dealer-total
-                    pone-table
-                    pone-total
-                    (trace-game (deal-crib 0 0 (random-dealer))
-                                alice
-                                bob)))
+      (record-trace M T (trace-game (deal-crib 0 0 (random-dealer)) alice bob)))
     (do ((k 0 (1+ k)))
         ((= k iterations-arbitrary)
-         (matrix-tabulate dealer-table
+         (matrix-tabulate M
                           (lambda (i j)
-                            (cond ((= i 121) 1)
-                                  ((= j 121) 0)
-                                  (else (/ (matrix-ref dealer-table i j)
-                                           (max 1 (matrix-ref dealer-total i j)))))))
-         (matrix-tabulate pone-table
-                          (lambda (i j)
-                            (cond ((= i 121) 1)
-                                  ((= j 121) 0)
-                                  (else (/ (matrix-ref pone-table i j)
-                                           (matrix-ref pone-total i j))))))
+                            (cond ((= j 121) 0)
+                                  ((= i 121) 1)
+                                  (else (/ (matrix-ref M i j)
+                                           (max 1 (matrix-ref T i j)))))))
          (for-each save-thing-to-file
-                   (list dealer-table
-                         dealer-total
-                         pone-table
-                         pone-total)
-                   '("calculations/dealer-table"
-                     "calculations/dealer-total"
-                     "calculations/pone-table"
-                     "calculations/pone-total")))
+                   (list M T)
+                   '("calculations/win-probability-table"
+                     "calculations/win-visits-table")))
       (format #t "iteration ~a~%" k)
       (do ((i 0 (1+ i)))
           ((= i 121))
         (simple-progress-bar 'Bootstrapping-Arbitrary i 121)
         (do ((j 0 (1+ j)))
             ((= j 121))
-          (record-trace dealer-table
-                        dealer-total
-                        pone-table
-                        pone-total
-                        (trace-game (deal-crib i j 'A) alice bob)))))))
+          (record-trace M T (trace-game (deal-crib i j 'A) alice bob)))))))
 
 (define (run-agents state A B)
   (let* ((now (current-time))

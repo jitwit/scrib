@@ -56,5 +56,5 @@
                    (crib-scoreB guess))
                 action))))
 
-(define Monte
+(define (Monte)
   (make-cribbot 'Monte (make-crib-monte)))
