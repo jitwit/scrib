@@ -26,7 +26,7 @@
              (newline))
            (iota 40))
   (let ((progress (round (/ (* 100 i) N))))
-    (display-with-foreground 'light-cyan name)
+    (display-with-foreground 'light-cyan name) (newline)
     (display #\[)
     (display-with-foreground 'light-green (make-string progress #\~))
     (display-with-foreground 'light-red (make-string (- 100 progress) #\.))    
@@ -90,7 +90,9 @@
         (send-reply (sxml->html
                      (matrix->sxml (with-input-from-file file read)
                                    (lambda (x)
-                                     (format "~,2f" x)))))))
+                                     (let ((val (format "~,2f" x))
+                                           (clr (if (<= 0 x) "green" "red")))
+                                       `(td (@ (bgcolor ,clr)) ,val))))))))
     (system (format "open ~a" target))))
 
 (define (matrix->sxml M render)
@@ -102,7 +104,7 @@
           ,@(map (lambda (i row)
                    `(tr (td ,(number->string i))
                         ,@(map (lambda (x)
-                                 `(td ,(render x)))
+                                 (render x))
                                (vector->list row))))
                  (iota (row-dim M))
                  (vector->list M))))

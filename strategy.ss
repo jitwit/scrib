@@ -1,6 +1,13 @@
 
 ;;;; Strategy
 
+;;; Lookup crib values
+(define (deal-discard cards)
+  (crib-discard deal-rasmussen cards))
+
+(define (pone-discard cards)
+  (crib-discard pone-rasmussen cards))
+
 ;;; Heuristics
 (define (deal-maximize-points-heuristic deck hand)
   (lambda (h)
@@ -26,8 +33,21 @@
   (lambda (h)
     (- (pone-discard (discard h hand)))))
 
-;;; Strategies
+(define (deal-maximize-P-X>=points-heuristic points)
+  (lambda (deck hand)
+    (lambda (h)
+      (let ((crib (deal-discard (discard h hand))))
+        (/ (v:fold deck 0 (lambda (c n)
+                            (if (<= points (+ crib (score-hand (cons c h))))
+                                (1+ n)
+                                n)))
+           (vector-length deck))))))
 
+(define (pone-maximize-P-X<points points)
+  (lambda (deck hand)
+    #f))
+
+;;; Strategies
 (define (deal-maximize-points hand)
   (let ((deck (list->vector (deck-without hand))))
     (discard-with-heuristic hand (deal-maximize-points-heuristic deck hand))))

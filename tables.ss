@@ -1,11 +1,5 @@
 ;;;; Cribbing tables
 ;;; for now will go with rasmussen's as it's from real play against experts.
-(define (deal-discard cards)
-  (crib-discard deal-rasmussen cards))
-
-(define (pone-discard cards)
-  (crib-discard pone-rasmussen cards))
-
 (define (crib-discard table cards)
   (vector-ref (vector-ref table (rank (car cards)))
               (rank (cadr cards))))
