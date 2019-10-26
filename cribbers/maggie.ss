@@ -1,12 +1,16 @@
 (define maggie-iterations
-  (make-parameter 8))
+  (make-parameter 12))
 
 (define maggie-win-table
   (fetch-table win-probability-table))
 
+(define maggie-chart
+  (fetch-table win-probability-table))
+
 ;;; remember discards
 (define (make-crib-maggie)
-  (let ((discards '()))
+  (let ((discards '())
+        (monte (cribbot-strategy (Monte))))
     (lambda (state)
       (cond
        ((state-discard? state)
@@ -32,6 +36,7 @@
     (do ((i 0 (1+ i)))
         ((= i trials)
          (let ((peg-frequencies (vector->list (hashtable-cells pegs))))
+           ;;           (display-histogram peg-frequencies) (newline) (newline)
            (cadr (maximum-on peg-frequencies cdr))))
       (let ((result (maggie-max (peg->crib* state discards))))
         (hashtable-update! pegs (cdr result) fx1+ 0)))))

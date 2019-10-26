@@ -2,7 +2,8 @@
         (charset)
         (brzozowski)
         (chez vector)
-        (sxml-mini))
+        (sxml-mini)
+        (prefix (patricia) tree:))
 
 (print-gensym #f)
 

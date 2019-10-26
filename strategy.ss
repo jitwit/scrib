@@ -48,10 +48,6 @@
     #f))
 
 ;;; Strategies
-(define (deal-maximize-points hand)
-  (let ((deck (list->vector (deck-without hand))))
-    (discard-with-heuristic hand (deal-maximize-points-heuristic deck hand))))
-
 (define (pone-maximize-points hand)
   (let ((deck (list->vector (deck-without hand))))
     (discard-with-heuristic hand (pone-maximize-points-heuristic deck hand))))

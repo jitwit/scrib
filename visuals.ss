@@ -83,11 +83,15 @@
            (- hi lo)))))
 
 (define (colorize-win-probability P)
-  (format "background-color: hsl(~a,~a%,~a%);"
-          (if (<= 1/2 P) 136 0)
-          100
-          ;;          (flonum->fixnum (+ 50.0 (floor (* 100 (abs (- P 1/2))))))
-          (flonum->fixnum (+ 0.0 (floor (* 100.0 (- 1/2 (abs (- P 1/2)))))))))
+  (let ((l (flonum->fixnum (+ 40.0 (floor (* 120.0 (- 1/2 (abs (- P 1/2)))))))))
+    (let-values (((h s)
+                  (if (<= 1/2 P)
+                      (values 362 100)
+                      (values 118 100))))
+      (format "background-color: hsl(~a,~a%,~a%);"
+              h
+              s
+              l))))
 
 (define (render-table file)
   (let ((target (string-append file ".html")))
@@ -116,3 +120,11 @@
                                (vector->list row))))
                  (iota (row-dim M))
                  (vector->list M))))
+
+(define (display-histogram X)
+  (let* ((H (sort-on X (compose - cdr))))
+    (for-all (lambda (x)
+               (display-card (car x))
+               (display " ")
+               (display-ln (make-string (cdr x) #\#)))
+             H)))

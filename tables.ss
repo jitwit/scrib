@@ -250,7 +250,7 @@
                          (build-card-occurrence-table pone-maximize-points (table-cutoff)))))
 
 (define win-probability-table
-  (make-cribbage-table "calculations/win-probability-table"
+  (make-cribbage-table "tables/dealer-table"
                        (lambda () (error 'pone-position-table "build the win tables some other way"))))
 
 (define cached-cribbage-tables

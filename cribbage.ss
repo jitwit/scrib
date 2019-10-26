@@ -170,6 +170,7 @@
              0
              board))
 
+;;; idea to use trie of ranks for pegging
 (define (score-peg-count board)
   (case (crib-board-total board)
     ((15 31) 2)
