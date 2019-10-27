@@ -1,5 +1,5 @@
 (define maggie-iterations
-  (make-parameter 12))
+  (make-parameter 24))
 
 (define maggie-win-table
   (fetch-table win-probability-table))
@@ -25,7 +25,15 @@
         (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
           (if (null? pegs)
               'go
-              (peg-from-random-states state discards (maggie-iterations)))))))))
+              (let ((choice (peg-from-random-states state discards (maggie-iterations))))
+                ;;                (display-ln state)
+                ;;                (display-ln 'Board)
+                ;;                (display-huge-hand (state-peg-board state))
+                ;;                (display-ln 'Hand)
+                ;;                (display-huge-hand (state-peg-hand state))
+                ;;                (display-huge-hand (list (monte state) choice))
+                choice
+                ))))))))
 
 ;;; Maggie does min-max from a bunch of randomly reconstructed cribs
 ;;; to select the best peg.
@@ -36,6 +44,7 @@
     (do ((i 0 (1+ i)))
         ((= i trials)
          (let ((peg-frequencies (vector->list (hashtable-cells pegs))))
+           ;;
            ;;           (display-histogram peg-frequencies) (newline) (newline)
            (cadr (maximum-on peg-frequencies cdr))))
       (let ((result (maggie-max (peg->crib* state discards))))
@@ -62,9 +71,16 @@
      (if (eq? 'A (crib-turn guess))
          (maggie-max guess)
          (maggie-min guess)))
-    (else (cons (- (crib-scoreA guess)
-                   (crib-scoreB guess))
-                action))))
+    ((won)
+     (if (= 121 (crib-scoreA guess))
+         (cons 1 action)
+         (cons 0 action)))
+    ((count)
+     (let ((score (current-score (execute-count guess))))
+       (cons (if (eq? 'A (car score))
+                 (apply matrix-ref maggie-win-table (cdr score))
+                 (- 1 (apply matrix-ref maggie-win-table (reverse (cdr score)))))
+             action)))))
 
 (define (Maggie)
   (make-cribbot 'Maggie (make-crib-maggie)))

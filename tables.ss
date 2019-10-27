@@ -258,7 +258,8 @@
         occurrence-table-deal-maximize-points
         hand-table-pone-maximize-points
         occurrence-table-pone-maximize-points
-        win-probability-table))
+        ;; win-probability-table
+        ))
 
 (define (build-all-tables)
   (format #t "Doing ~a iterations per table~%" (table-cutoff))

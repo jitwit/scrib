@@ -82,11 +82,11 @@
            (- hi lo)))))
 
 (define (colorize-win-probability P)
-  (let ((l (flonum->fixnum (+ 40.0 (floor (* 120.0 (- 1/2 (abs (- P 1/2)))))))))
+  (let ((l (flonum->fixnum (+ 55.0 (floor (* 90.0 (- 1/2 (abs (- P 1/2)))))))))
     (let-values (((h s)
                   (if (<= 1/2 P)
-                      (values 362 100)
-                      (values 118 100))))
+                      (values 64 100)
+                      (values 184 100))))
       (format "background-color: hsl(~a,~a%,~a%);"
               h
               s

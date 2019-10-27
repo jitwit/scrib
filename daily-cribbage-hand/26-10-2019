@@ -1,0 +1,74 @@
+
+
+
+
+
+
+<html>
+  <head>
+
+			<meta name="viewport" content="width=device-width, initial-scale=.9">
+ 		<meta charset="UTF-8">
+    	<link rel="stylesheet" type="text/css" href="cribbage.css?v=1572058010"/>
+		<link rel="stylesheet" media="(max-width:400px)" href="phone.css?v=1572058010">
+		<link rel="stylesheet" media="(min-width:401px)" href="standard.css?v=1572058010">
+	    <script src="cribbage.js?v=1572058010"></script>
+		<title>Daily Cribbage Hand</title>
+  </head>
+  <body>
+		<div id="cheader">&nbsp;<div id="header"><li class="first"><a href="login.php">Login</a></li><li>&nbsp;|&nbsp;</li><li><a href="register.php">Register</a></li></div></div><div id="title"><a class='nodecor' href='/'><img border="0" src="title3.png"/></a></div>		<div id="subtitle">
+   		<p>October 26, 2019</p>
+   	</div>
+    <form name="cribbageForm" action="record.php" method="post">
+      <div id="hand" class="rcorners">
+		<div>
+			<div class='cards'>
+              <div id="upcard">
+                <img src="cards/normal/b.gif"/>
+              </div>
+            <div id="cardOne" data-click-div="cardOne" class="cardclick floatcard">
+<img id="cardOne" src="cards/normal/2s.gif"/></div><div id="cardTwo" data-click-div="cardTwo" class="cardclick floatcard">
+<img id="cardTwo" src="cards/normal/3s.gif"/></div><div id="cardThree" data-click-div="cardThree" class="cardclick floatcard">
+<img id="cardThree" src="cards/normal/4c.gif"/></div><div id="cardFour" data-click-div="cardFour" class="cardclick floatcard">
+<img id="cardFour" src="cards/normal/4s.gif"/></div><div id="cardFive" data-click-div="cardFive" class="cardclick floatcard">
+<img id="cardFive" src="cards/normal/5s.gif"/></div><div id="cardSix" data-click-div="cardSix" class="cardclick floatcard">
+<img id="cardSix" src="cards/normal/6s.gif"/></div>          </tr>
+        </table>
+
+		</div>
+		</div>
+        <div id="score">44-50*&nbsp;&nbsp;<a class="whitelink" id="explainscore" href="#" >?</a></div>		<div id="suggestor">*** Today's hand was suggested by glmccuskey</div>      </div>
+      <input type="hidden" name="cardOne"/>
+      <input type="hidden" name="cardTwo"/>
+      <input type="hidden" name="cardThree"/>
+      <input type="hidden" name="cardFour"/>
+      <div id="button">
+        <input name="toCribButton" type="submit" disabled="true" value="To Opponent's Crib"/>      </div>
+
+			<!--div id="blurb">
+			</div-->
+			
+			<div id="links">
+			<ul>
+				<li class="first"><a href="results.php">Today's Results</a></li>
+          <li>-</li>
+          <li><a href="yesterday.php">Yesterday's Results</a></li>
+          <li>-</li>
+					<li><a href="pick.php">Past Results</a></li>
+          <li>-</li>
+          <li><a href="suggest.php">Suggest A Hand</a></li>
+          <br/>
+          <li><a href="about.php">About This Site</a></li>
+		  <br/>
+		  <br/>
+          <li>Contact Webmaster by email: dailycribbagehand at gmail.com</li>
+		  <br/>
+		  <br/>
+          <li>Play Cribbage online at <a href="http://www.ecribbage.com">eCribbage</a></li>
+			</ul>
+			<ul>
+          <li class='padtop10'>Rules to card games at <a href="https://www.coololdgames.com">Cool Old Games</a></li>
+        </ul>
+      </div>    </form>
+  </body>
+</html>
