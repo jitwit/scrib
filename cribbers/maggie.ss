@@ -14,7 +14,7 @@
 ;;; remember discards
 (define (make-crib-maggie)
   (let ((discards '())
-        (monte (cribbot-strategy (Monte (maggie-iterations)))))
+        (monte (make-crib-monte (maggie-iterations))))
     (lambda (state)
       (cond
        ((state-discard? state)

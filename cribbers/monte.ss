@@ -58,5 +58,5 @@
                    (crib-scoreB guess))
                 action))))
 
-(define (Monte iterations)
-  (make-cribbot 'Monte (make-crib-monte iterations)))
+(define (Monte)
+  (make-cribbot 'Monte (make-crib-monte (monte-iterations))))
