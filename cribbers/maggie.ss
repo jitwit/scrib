@@ -1,5 +1,5 @@
 (define maggie-iterations
-  (make-parameter 24))
+  (make-parameter 30))
 
 (define maggie-win-table
   (fetch-table win-probability-table))
@@ -7,10 +7,14 @@
 (define maggie-chart
   (fetch-table win-probability-table))
 
+(define (peg-score state)
+  (min (state-peg-scoreA state)
+       (state-peg-scoreB state)))
+
 ;;; remember discards
 (define (make-crib-maggie)
   (let ((discards '())
-        (monte (cribbot-strategy (Monte))))
+        (monte (cribbot-strategy (Monte (maggie-iterations)))))
     (lambda (state)
       (cond
        ((state-discard? state)
@@ -25,15 +29,18 @@
         (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
           (if (null? pegs)
               'go
-              (let ((choice (peg-from-random-states state discards (maggie-iterations))))
-                ;;                (display-ln state)
-                ;;                (display-ln 'Board)
-                ;;                (display-huge-hand (state-peg-board state))
-                ;;                (display-ln 'Hand)
-                ;;                (display-huge-hand (state-peg-hand state))
-                ;;                (display-huge-hand (list (monte state) choice))
-                choice
-                ))))))))
+              (if (< (peg-score state) 60)
+                  (monte state)
+                  (let ((choice (peg-from-random-states state discards (maggie-iterations))))
+                    ;;                     (display-ln state)
+                    ;;                     (display-ln 'Board)
+                    ;;                     (display-huge-hand (state-peg-board state))
+                    ;;                     (display-ln 'Hand)
+                    ;;                     (display-huge-hand (state-peg-hand state))
+                    ;;                     (display-ln 'Monte-Choice)
+                    ;;                    (display-huge-hand (list (monte state) choice))
+                    choice
+                    )))))))))
 
 ;;; Maggie does min-max from a bunch of randomly reconstructed cribs
 ;;; to select the best peg.
@@ -44,10 +51,11 @@
     (do ((i 0 (1+ i)))
         ((= i trials)
          (let ((peg-frequencies (vector->list (hashtable-cells pegs))))
-           ;;
-           ;;           (display-histogram peg-frequencies) (newline) (newline)
+           ;;           (newline) (newline) (newline)
+           ;;           (display-histogram peg-frequencies)
+           ;;           (display-huge-hand (list (cadr (maximum-on peg-frequencies cdr))))
            (cadr (maximum-on peg-frequencies cdr))))
-      (let ((result (maggie-max (peg->crib* state discards))))
+      (let ((result (maggie-max (peg->crib state discards))))
         (hashtable-update! pegs (cdr result) fx1+ 0)))))
 
 (define (maggie-max state)

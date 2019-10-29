@@ -1,8 +1,8 @@
 (define monte-iterations
-  (make-parameter 12))
+  (make-parameter 30))
 
 ;; given peg view, dumbly reconstruct a random state
-(define (make-crib-monte)
+(define (make-crib-monte iterations)
   (let ((discards '()))
     (lambda (state)
       (cond
@@ -18,14 +18,16 @@
         (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
           (if (null? pegs)
               'go
-              (monte-peg state discards (monte-iterations)))))))))
+              (monte-peg state discards iterations))))))))
 
 (define (monte-peg state discards trials)
   (let ((moves '()))
     (do ((i 0 (1+ i)))
         ((= i trials)
+         ;;         (display-ln 'Monte)
+         ;;         (display-histogram moves)
          (cadr (maximum-on (eq-histogram (map cdr moves)) cdr)))
-      (let ((guess (peg->crib state discards)))
+      (let ((guess (peg->crib* state discards)))
         ;; start with maximin because we know it's our turn when this is called
         (push! (monte-maximin guess) moves)))))
 
@@ -56,5 +58,5 @@
                    (crib-scoreB guess))
                 action))))
 
-(define (Monte)
-  (make-cribbot 'Monte (make-crib-monte)))
+(define (Monte iterations)
+  (make-cribbot 'Monte (make-crib-monte iterations)))

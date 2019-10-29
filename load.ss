@@ -1,7 +1,7 @@
 (import (euler)
         (charset)
         (brzozowski)
-        (chez vector)
+        (vector)
         (sxml-mini)
         (prefix (patricia) tree:))
 
@@ -26,7 +26,6 @@
     "strategy.ss"
     "tables.ss"
     "visuals.ss"
-    
     ))
 
 (define table-cutoff
