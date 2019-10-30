@@ -9,7 +9,7 @@ run : load.ss
 		scheme -q --optimize-level 3 $<
 
 grow : load.ss
-	echo "(grow-win-table (Maggie) (Maggie) 0 $(growth-factor))" | scheme -q $<
+	echo "(grow-win-table (Monte) (Monte) 10 $(growth-factor))" | scheme -q $<
 
 frequency-tables : load.ss
 	echo "(build-all-tables)" | scheme -q --optimize-level 3 $<
