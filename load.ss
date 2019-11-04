@@ -25,8 +25,7 @@
     "study.ss"
     "strategy.ss"
     "tables.ss"
-    "visuals.ss"
-    ))
+    "visuals.ss"))
 
 (define table-cutoff
   (make-parameter 100000))
@@ -69,6 +68,16 @@
   (let ((C1 (run-cribbage C0 (random-element (cribbage-actions C0)))))
     (run-cribbage C1 (random-element (cribbage-actions C1)))))
 
+(define (examine-maggie-deal a b)
+  (let ((C (deal-crib a b 'B)))
+    (display-huge-hand (crib-handA C))
+    (display-huge-hand (maggie-deal-discard (crib->discard C)))))
+
+(define (examine-maggie-pone a b)
+  (let ((C (deal-crib a b 'B)))
+    (display-huge-hand (crib-handA C))
+    (display-huge-hand (maggie-deal-discard (crib->discard C)))))
+
 (define (read-input)
   (let loop ((next (read)) (objects '()))
     (if (eof-object? next)
@@ -96,5 +105,3 @@
 (random-seed
  (time-nanosecond
   (current-time)))
-
-

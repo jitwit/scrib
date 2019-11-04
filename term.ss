@@ -39,4 +39,3 @@
     (put-term-code escape)
     (display object)
     (clear-term-code)))
-

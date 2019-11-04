@@ -7,6 +7,7 @@
   (make-parameter 3))
 
 (define url "https://www.dailycribbagehand.org/")
+
 (define hand-file
   (make-parameter
    (let ((now (time-utc->date (current-time))))
@@ -79,7 +80,7 @@
                                              (string-length c))))
                     (show-matches re:card puzzle)))
          (score-string (car (show-matches re:score puzzle)))
-         (scores (reverse (map string->number (show-matches re:number score-string)))))
+         (scores (map string->number (show-matches re:number score-string))))
     ;;; * indicates dealer, our score is listed first. We match the &, 
     ;;; so - 2 for index
     (make-state-discard (not (char=? #\*
@@ -104,20 +105,10 @@
           (else
            (display-discard-strategy pone-maximize-points-heuristic cards (display-length))
            (newline) (newline)
-           ;;           (display-discard-strategy pone-minimize-crib-heuristic cards (display-length))
+           ;;
+           (display-discard-strategy pone-minimize-crib-heuristic cards (display-length))
            ;;           (newline) (newline)
            ))
     (display-ln situation)))
 
-(define (main*)
-  (fetch-daily-hand)
-  (let ((situation (map parse-card (read-cards))))
-    (display-discard-strategy deal-maximize-points-heuristic cards (display-length))
-    (newline) (newline)
-    (display-discard-strategy deal-maximize-crib-heuristic  cards (display-length))
-    (newline) (newline)
-    (display-discard-strategy pone-maximize-points-heuristic cards (display-length))
-    (newline) (newline)
-    (display-discard-strategy pone-minimize-crib-heuristic cards (display-length))
-    (newline) (newline)
-    (display-ln situation)))
+

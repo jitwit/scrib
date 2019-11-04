@@ -288,7 +288,7 @@
 
 ;;; dealing
 (define (deal-crib scoreA scoreB dealer)
-  (let ((cards (list-head (deck) 13)))
+  (let ((cards (shuff)))
     (make-crib dealer
                (opposite-player dealer)
                scoreA

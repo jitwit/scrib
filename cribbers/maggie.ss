@@ -11,6 +11,60 @@
   (min (state-peg-scoreA state)
        (state-peg-scoreB state)))
 
+(define (discard-score state)
+  (min (state-discard-scoreA state)
+       (state-discard-scoreB state)))
+
+(define (maggie-deal-heuristic a b deck hand)
+  (lambda (h)
+    (let ((a (inexact->exact (floor (min 121.
+                                         (+ a
+                                            peg-deal-colvert
+                                            (/ (v:sum (vector-map (lambda (c)
+                                                                    (score-hand (cons c h)))
+                                                                  deck))
+                                               (vector-length deck))
+                                            (deal-discard (discard h hand)))))))
+          (b (inexact->exact (floor (min 121.
+                                         (+ b
+                                            hand-pone-fuller
+                                            peg-pone-colvert))))))
+      (- 1 (matrix-ref maggie-chart b a)))))
+
+(define (maggie-pone-heuristic a b deck hand)
+  (lambda (h)
+    (let ((a (inexact->exact (round (min 121.
+                                         (+ a
+                                            peg-pone-colvert
+                                            (/ (v:sum (vector-map (lambda (c)
+                                                                    (score-hand (cons c h)))
+                                                                  deck))
+                                               (vector-length deck)))))))
+          (b (inexact->exact (round (min 121.
+                                         (+ b
+                                            (pone-discard (discard h hand))
+                                            hand-deal-fuller
+                                            peg-deal-colvert))))))
+      (matrix-ref maggie-chart a b))))
+
+(define (maggie-deal-discard state)
+  (let* ((hand (state-discard-hand state))
+         (deck (list->vector (deck-without hand))))
+    (discard-with-heuristic hand
+                            (maggie-deal-heuristic (state-discard-scoreA state)
+                                                   (state-discard-scoreB state)
+                                                   deck
+                                                   hand))))
+
+(define (maggie-pone-discard state)
+  (let* ((hand (state-discard-hand state))
+         (deck (list->vector (deck-without hand))))
+    (discard-with-heuristic hand
+                            (maggie-pone-heuristic (state-discard-scoreA state)
+                                                   (state-discard-scoreB state)
+                                                   deck
+                                                   hand))))
+
 ;;; remember discards
 (define (make-crib-maggie)
   (let ((discards '())
@@ -20,10 +74,16 @@
        ((state-discard? state)
         (let ((hand (state-discard-hand state)))
           (cond ((state-discard-dealer? state)
-                 (set! discards (discard (deal-maximize-points hand) hand))
+                 (set! discards (discard (if (< (discard-score state) 80)
+                                             (deal-maximize-points hand)
+                                             (maggie-deal-discard state))
+                                         hand))
                  discards)
                 (else
-                 (set! discards (discard (pone-maximize-points hand) hand))
+                 (set! discards (discard (if (< (discard-score state) 80)
+                                             (pone-maximize-points hand)
+                                             (maggie-pone-discard state))
+                                         hand))
                  discards))))
        ((state-peg? state)
         (let ((pegs (valid-pegs (state-peg-board state) (state-peg-hand state))))
@@ -32,15 +92,7 @@
               (if (< (peg-score state) 60)
                   (monte state)
                   (let ((choice (peg-from-random-states state discards (maggie-iterations))))
-                    ;;                     (display-ln state)
-                    ;;                     (display-ln 'Board)
-                    ;;                     (display-huge-hand (state-peg-board state))
-                    ;;                     (display-ln 'Hand)
-                    ;;                     (display-huge-hand (state-peg-hand state))
-                    ;;                     (display-ln 'Monte-Choice)
-                    ;;                    (display-huge-hand (list (monte state) choice))
-                    choice
-                    )))))))))
+                    choice)))))))))
 
 ;;; Maggie does min-max from a bunch of randomly reconstructed cribs
 ;;; to select the best peg.

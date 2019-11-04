@@ -132,8 +132,21 @@
                (display-card card))
              (cdr hand))))
 
-(define (deck)
-  (shuffle (iota 52)))
+(define deck
+  (let ((cs (iota 52)))
+    (lambda ()
+      (shuffle cs))))
+
+(define shuff
+  (let ((V (list->fxvector (iota 52)))
+        (js (iota 13)))
+    (lambda ()
+      (do ((i 0 (fx1+ i)))
+          ((= i 13)
+           (map (lambda (j)
+                  (fxvector-ref V j))
+                js))
+        (fxvector-swap! V i (fx+ i 1 (random (fx- 51 i))))))))
 
 (define (discard cards hand)
   (filter (lambda (card)

@@ -4,6 +4,18 @@
   (vector-ref (vector-ref table (rank (car cards)))
               (rank (cadr cards))))
 
+(define peg-pone-colvert
+  2.1)
+
+(define peg-deal-colvert
+  3.5)
+
+(define hand-deal-fuller
+  7.72)
+
+(define hand-pone-fuller
+  7.84)
+
 (define deal-rasmussen
   '#(#(5.51 4.35 4.69 5.42 5.38 3.98 4.05 3.77 3.49 3.51 3.57 3.50 3.36)
      #(4.35 5.82 7.14 4.64 5.54 4.15 3.78 3.82 3.91 3.71 4.05 3.86 3.57)
